@@ -135,7 +135,8 @@ public class ASTBuilder extends MxBaseVisitor<ASTNode> {
             return new intLiteral(Integer.parseInt(ctx.IntLiteral().getText()), new position(ctx));
         else if (ctx.BoolLiteral() != null)
             return new boolLiteral(Boolean.parseBoolean(ctx.BoolLiteral().getText()), new position(ctx));
-        else if (ctx.StringLiteral() != null) return new stringLiteral(ctx.StringLiteral().getText(), new position(ctx));
+        else if (ctx.StringLiteral() != null)
+            return new stringLiteral(ctx.StringLiteral().getText(), new position(ctx));
         else return new nullLiteral(new position(ctx));
     }
 

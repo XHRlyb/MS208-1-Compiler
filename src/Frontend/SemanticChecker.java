@@ -60,7 +60,7 @@ public class SemanticChecker implements ASTVisitor {
         if (o.ini != null) o.ini.accept(this);
         if (o.cond != null) o.cond.accept(this);
         if (o.cond != null && !o.cond.typ.isBool())
-            throw new semanticError("for cond must be bool", o.pos);
+            throw new semanticError("for cond must be bool " + ((primitiveType)o.cond.typ).nam, o.pos);
         if (o.inc != null) o.inc.accept(this);
         loopDep++;
         cur = new Scope(cur);

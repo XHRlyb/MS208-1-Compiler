@@ -7,7 +7,7 @@ public class varExpr extends exprNode {
     public String nam;
 
     public varExpr(String nam, position pos) {
-        super(pos);
+        super(pos, true);
         this.nam = nam;
     }
 

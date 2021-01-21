@@ -18,7 +18,7 @@ public class primitiveType extends Type {
 
     @Override
     public boolean sameType(Type o) {
-        return     ( isNull() &&
+        return     ( this.isNull() &&
                      (o instanceof arrayType || o instanceof classType) )
                 || ( (o instanceof primitiveType) &&
                      (nam.equals(((primitiveType)o).nam)) );
