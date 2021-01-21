@@ -20,7 +20,7 @@ public class MxLexer extends Lexer {
 		T__9=10, T__10=11, T__11=12, T__12=13, T__13=14, T__14=15, T__15=16, T__16=17, 
 		T__17=18, T__18=19, T__19=20, T__20=21, T__21=22, T__22=23, T__23=24, 
 		T__24=25, T__25=26, T__26=27, T__27=28, T__28=29, T__29=30, T__30=31, 
-		T__31=32, IntLiteral=33, StrLiteral=34, BoolLiteral=35, NullLiteral=36, 
+		T__31=32, IntLiteral=33, StringLiteral=34, BoolLiteral=35, NullLiteral=36, 
 		Int=37, Bool=38, String=39, Null=40, Void=41, True=42, False=43, If=44, 
 		Else=45, For=46, While=47, Break=48, Continue=49, Return=50, New=51, Class=52, 
 		This=53, Identifier=54, Whitespace=55, Newline=56, BlockComment=57, LineComment=58;
@@ -38,7 +38,7 @@ public class MxLexer extends Lexer {
 			"T__9", "T__10", "T__11", "T__12", "T__13", "T__14", "T__15", "T__16", 
 			"T__17", "T__18", "T__19", "T__20", "T__21", "T__22", "T__23", "T__24", 
 			"T__25", "T__26", "T__27", "T__28", "T__29", "T__30", "T__31", "IntLiteral", 
-			"StrLiteral", "BoolLiteral", "NullLiteral", "Int", "Bool", "String", 
+			"StringLiteral", "BoolLiteral", "NullLiteral", "Int", "Bool", "String", 
 			"Null", "Void", "True", "False", "If", "Else", "For", "While", "Break", 
 			"Continue", "Return", "New", "Class", "This", "Identifier", "Whitespace", 
 			"Newline", "BlockComment", "LineComment"
@@ -62,7 +62,7 @@ public class MxLexer extends Lexer {
 		return new String[] {
 			null, null, null, null, null, null, null, null, null, null, null, null, 
 			null, null, null, null, null, null, null, null, null, null, null, null, 
-			null, null, null, null, null, null, null, null, null, "IntLiteral", "StrLiteral", 
+			null, null, null, null, null, null, null, null, null, "IntLiteral", "StringLiteral", 
 			"BoolLiteral", "NullLiteral", "Int", "Bool", "String", "Null", "Void", 
 			"True", "False", "If", "Else", "For", "While", "Break", "Continue", "Return", 
 			"New", "Class", "This", "Identifier", "Whitespace", "Newline", "BlockComment", 

@@ -94,7 +94,7 @@ null
 null
 null
 IntLiteral
-StrLiteral
+StringLiteral
 BoolLiteral
 NullLiteral
 Int
@@ -154,7 +154,7 @@ T__29
 T__30
 T__31
 IntLiteral
-StrLiteral
+StringLiteral
 BoolLiteral
 NullLiteral
 Int

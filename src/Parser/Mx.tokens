@@ -31,7 +31,7 @@ T__29=30
 T__30=31
 T__31=32
 IntLiteral=33
-StrLiteral=34
+StringLiteral=34
 BoolLiteral=35
 NullLiteral=36
 Int=37
@@ -56,7 +56,6 @@ Whitespace=55
 Newline=56
 BlockComment=57
 LineComment=58
-StringLiteral=59
 ','=1
 ';'=2
 '='=3
