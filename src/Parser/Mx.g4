@@ -1,78 +1,74 @@
 grammar Mx;
 
 program : subprogram* EOF;
-
-wow1 : subprogram;
-
-wow2 : subprogram*;
-
-wow3 : subprogram Dot subprogram;
-
 subprogram : varDef | funDef | classDef;
 
 classDef : Class Identifier '{' (varDef | funDef)* '}' ';';
-funDef : type? Identifier '(' paraLis? ')' suite;
-varDef : type singleVarDef (',' singleVarDef)* ';';
-
-singleVarDef : Identifier ('=' expression)?;
+funDef : returnType? Identifier '(' paraLis? ')' block;
+varDef : type varDefSig (',' varDefSig)* ';';
+varDefSig : Identifier ('=' expression)?;
 
 paraLis : para (',' para)*;
 para : type Identifier;
 
-basType : Int | Bool | String;
-type : (Identifier | basType) ('[' ']')* | Void;
+returnType : type | Void;
+basType : Int | Bool | String | Identifier;
+type : basType ('[' ']')*;
 
-suite : '{' statement* '}';
+block : '{' statement* '}';
 
 statement
-    : suite                                                 #block
-    | varDef                                                #vardefStmt
-    | If '(' expression ')' trueStmt=statement
-        (Else falseStmt=statement)?                         #ifStmt
-    | For '(' init=expression? ';' cond=expression? ';'
-                incr=expression? ')' statement              #forStmt
+    : block                                                 #blockStmt
+    | varDef                                                #varDefStmt
+    | If '(' expression ')' tStmt=statement
+        (Else fStmt=statement)?                             #ifStmt
+    | For '(' ini=expression? ';' cond=expression? ';'
+                inc=expression? ')' statement               #forStmt
     | While '(' expression ')' statement                    #whileStmt
     | Return expression? ';'                                #returnStmt
     | Break ';'                                             #breakStmt
     | Continue ';'                                          #continueStmt
-    | expression ';'                                        #pureExprStmt
+    | expression ';'                                        #exprStmt
     | ';'                                                   #emptyStmt
     ;
 
-literal : Integer | StringLiteral | boolValue=(True | False) | Null;
+literal : NullLiteral | BoolLiteral | IntLiteral | StringLiteral;
 
 primExp : '(' expression ')' | This | Identifier | literal;
 
 creator
-    : (basType | Identifier) ('[' expression ']')+ ('[' ']')+ ('[' expression ']')+ #errorCreator
-    | (basType | Identifier) ('[' expression ']')+ ('[' ']')* #arrayCreator
-    | (basType | Identifier) '(' ')'                          #classCreator
-    | (basType | Identifier)                                  #basicCreator
+    : basType ('[' expression ']')+ ('[' ']')+ ('[' expression ']')+  #errorCreator
+    | basType ('[' expression ']')+ ('[' ']')*                        #arrayCreator
+    | basType '(' ')'                                                 #classCreator
+    | basType                                                         #basicCreator
     ;
 
 expressionLis : expression (',' expression)*;
 
 expression
-    : primExp                                               #atomExpr
-    | expression '.' Identifier                             #memberExpr
-    | <assoc=right> 'new' creator                           #newExpr
-    | expression '[' expression ']'                         #subscript
-    | expression '(' expressionLis? ')'                    #funcCall
-    | expression op=('++' | '--')                           #suffixExpr
-    | <assoc=right> op=('+' | '-' | '++' | '--') expression #prefixExpr
-    | <assoc=right> op=('~' | '!' ) expression              #prefixExpr
-    | expression op=('*' | '/' | '%') expression            #binaryExpr
-    | expression op=('+' | '-') expression                  #binaryExpr
-    | expression op=('<<' | '>>') expression                #binaryExpr
-    | expression op=('<' | '>' | '>=' | '<=') expression    #binaryExpr
-    | expression op=('==' | '!=' ) expression               #binaryExpr
-    | expression op='&' expression                          #binaryExpr
-    | expression op='^' expression                          #binaryExpr
-    | expression op='|' expression                          #binaryExpr
-    | expression '&&' expression                            #binaryExpr
-    | expression '||' expression                            #binaryExpr
-    | <assoc=right> expression '=' expression               #assignExpr
+    : primExp                                                         #atomExpr
+    | expression '.' Identifier                                       #memberExpr
+    | <assoc=right> 'new' creator                                     #newExpr
+    | bas=expression '[' offs=expression ']'                          #subscriptExpr
+    | expression '(' expressionLis? ')'                               #funCallExpr
+    | expression op=('++' | '--')                                     #suffixExpr
+    | <assoc=right> op=('++' | '--') expression                       #prefixExpr
+    | <assoc=right> op=('+' | '-' | '++' | '--') expression           #prefixExpr
+    | <assoc=right> op=('~' | '!' ) expression                        #prefixExpr
+    | src1=expression op=('*' | '/' | '%') src2=expression            #binaryExpr
+    | src1=expression op=('+' | '-') src2=expression                  #binaryExpr
+    | src1=expression op=('<<' | '>>') src2=expression                #binaryExpr
+    | src1=expression op=('<' | '>' | '>=' | '<=') src2=expression    #binaryExpr
+    | src1=expression op=('==' | '!=' ) src2=expression               #binaryExpr
+    | src1=expression op='&' src2=expression                          #binaryExpr
+    | src1=expression op='^' src2=expression                          #binaryExpr
+    | src1=expression op='|' src2=expression                          #binaryExpr
+    | src1=expression op='&&' src2=expression                         #binaryExpr
+    | src1=expression op='||' src2=expression                         #binaryExpr
+    | <assoc=right> src1=expression '=' src2=expression               #binaryExpr
     ;
+
+
 
 Int : 'int';
 Bool : 'bool';
@@ -136,14 +132,15 @@ Semi : ';';
 Comma : ',';
 
 StringLiteral : '"' SChar* '"';
+IntLiteral : [1-9] [0-9]* | '0';
+BoolLiteral : True | False;
+NullLiteral : Null;
 
 fragment
 
 SChar : ~["\\\n\r] | '\\n' | '\\\\' | '\\"';
 
 Identifier : [a-zA-Z] [a-zA-Z_0-9]*;
-
-Integer : [1-9] [0-9]* | '0';
 
 Whitespace : [ \t]+ -> skip ;
 

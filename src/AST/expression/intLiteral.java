@@ -1,0 +1,18 @@
+package AST.expression;
+
+import AST.ASTVisitor;
+import Util.position;
+
+public class intLiteral extends exprNode {
+    public int val;
+
+    public intLiteral(int val, position pos) {
+        super(pos);
+        this.val = val;
+    }
+
+    @Override
+    public void accept(ASTVisitor vis) {
+        vis.visit(this);
+    }
+}
