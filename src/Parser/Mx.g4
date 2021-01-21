@@ -3,19 +3,29 @@ grammar Mx;
 program : subprogram* EOF;
 subprogram : varDef | funDef | classDef;
 
-classDef : Class Identifier '{' (varDef | funDef)* '}' ';';
-funDef : returnType? Identifier '(' paraLis? ')' block;
 varDef : type varDefSig (',' varDefSig)* ';';
 varDefSig : Identifier ('=' expression)?;
+funDef : returnType? Identifier '(' paraLis? ')' block;
+classDef : Class Identifier '{' (varDef | funDef)* '}' ';';
 
 paraLis : para (',' para)*;
 para : type Identifier;
 
-returnType : type | Void;
-basType : Int | Bool | String | Identifier;
 type : basType ('[' ']')*;
+basType : Int | Bool | String | Identifier;
+returnType : type | Void;
 
 block : '{' statement* '}';
+
+primExp : '(' expression ')' | This | Identifier | literal;
+literal : IntLiteral | BoolLiteral | StringLiteral | NullLiteral;
+
+creator
+    : basType ('[' expression ']')+ ('[' ']')+ ('[' expression ']')+  #errorCreator
+    | basType ('[' expression ']')+ ('[' ']')*                        #arrayCreator
+    | basType '(' ')'                                                 #classCreator
+    | basType                                                         #basicCreator
+    ;
 
 statement
     : block                                                 #blockStmt
@@ -32,27 +42,15 @@ statement
     | ';'                                                   #emptyStmt
     ;
 
-literal : NullLiteral | BoolLiteral | IntLiteral | StringLiteral;
-
-primExp : '(' expression ')' | This | Identifier | literal;
-
-creator
-    : basType ('[' expression ']')+ ('[' ']')+ ('[' expression ']')+  #errorCreator
-    | basType ('[' expression ']')+ ('[' ']')*                        #arrayCreator
-    | basType '(' ')'                                                 #classCreator
-    | basType                                                         #basicCreator
-    ;
-
-expressionLis : expression (',' expression)*;
-
 expression
     : primExp                                                         #atomExpr
+    | expression '(' expressionLis? ')'                               #funCallExpr
+    | bas=expression '[' offs=expression ']'                          #subscriptExpr
     | expression '.' Identifier                                       #memberExpr
     | <assoc=right> 'new' creator                                     #newExpr
-    | bas=expression '[' offs=expression ']'                          #subscriptExpr
-    | expression '(' expressionLis? ')'                               #funCallExpr
     | expression op=('++' | '--')                                     #suffixExpr
-    | <assoc=right> op=('+' | '-' | '++' | '--') expression           #prefixExpr
+    | <assoc=right> op=('++' | '--') expression                       #prefixExpr
+    | <assoc=right> op=('+' | '-') expression                         #prefixExpr
     | <assoc=right> op=('~' | '!' ) expression                        #prefixExpr
     | src1=expression op=('*' | '/' | '%') src2=expression            #binaryExpr
     | src1=expression op=('+' | '-') src2=expression                  #binaryExpr
@@ -66,6 +64,13 @@ expression
     | src1=expression op='||' src2=expression                         #binaryExpr
     | <assoc=right> src1=expression op='=' src2=expression               #binaryExpr
     ;
+
+expressionLis : expression (',' expression)*;
+
+IntLiteral : [1-9] [0-9]* | '0';
+StrLiteral : '"' (~["\\\n\r] | '\\' ["\\nr])* '"';
+BoolLiteral : True | False;
+NullLiteral : Null;
 
 Int : 'int';
 Bool : 'bool';
@@ -85,16 +90,9 @@ New : 'new';
 Class : 'class';
 This : 'this';
 
-StringLiteral : '"' SChar* '"';
-IntLiteral : [1-9] [0-9]* | '0';
-BoolLiteral : True | False;
-NullLiteral : Null;
-
-SChar : ~["\\\n\r] | '\\' ["\\nr];
-
 Identifier : [a-zA-Z] [a-zA-Z_0-9]*;
 
-Whitespace : [ \t]+ -> skip ;
+Whitespace : [ \t]+ -> skip;
 Newline : ('\r' '\n'? | '\n') -> skip;
 BlockComment : '/*' .*? '*/' -> skip;
 LineComment : '//' ~[\r\n]* -> skip;
