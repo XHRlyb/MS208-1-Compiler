@@ -8,7 +8,7 @@ public class forStmt extends stmtNode{
     public exprNode cond, inc, ini;
     public stmtNode body;
 
-    public forStmt(exprNode ini, exprNode inc, exprNode cond, stmtNode body, position pos) {
+    public forStmt(exprNode ini, exprNode cond, exprNode inc, stmtNode body, position pos) {
         super(pos);
         this.ini = ini;
         this.inc = inc;
