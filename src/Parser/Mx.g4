@@ -52,7 +52,6 @@ expression
     | bas=expression '[' offs=expression ']'                          #subscriptExpr
     | expression '(' expressionLis? ')'                               #funCallExpr
     | expression op=('++' | '--')                                     #suffixExpr
-    | <assoc=right> op=('++' | '--') expression                       #prefixExpr
     | <assoc=right> op=('+' | '-' | '++' | '--') expression           #prefixExpr
     | <assoc=right> op=('~' | '!' ) expression                        #prefixExpr
     | src1=expression op=('*' | '/' | '%') src2=expression            #binaryExpr
@@ -65,10 +64,8 @@ expression
     | src1=expression op='|' src2=expression                          #binaryExpr
     | src1=expression op='&&' src2=expression                         #binaryExpr
     | src1=expression op='||' src2=expression                         #binaryExpr
-    | <assoc=right> src1=expression '=' src2=expression               #binaryExpr
+    | <assoc=right> src1=expression op='=' src2=expression               #binaryExpr
     ;
-
-
 
 Int : 'int';
 Bool : 'bool';
@@ -88,61 +85,16 @@ New : 'new';
 Class : 'class';
 This : 'this';
 
-Plu : '+';
-Sub : '-';
-Mul : '*';
-Div : '/';
-Mod : '%';
-
-Gt : '>';
-Lt : '<';
-Ge : '>=';
-Le : '<=';
-Eq : '==';
-Neq : '!=';
-
-AndAnd : '&&';
-OrOr : '||';
-Not : '!';
-
-RShift : '>>';
-LShift : '<<';
-And : '&';
-Or : '|';
-Xor : '^';
-Conty : '~';
-
-Assign : '=';
-
-PluPlu : '++';
-SubSub : '--';
-
-Dot : '.';
-
-LParen : '(';
-RParen : ')';
-LBracket : '[';
-RBracket : ']';
-LBrace : '{';
-RBrace : '}';
-
-Question : '?';
-Colon : ':';
-Semi : ';';
-Comma : ',';
-
 StringLiteral : '"' SChar* '"';
 IntLiteral : [1-9] [0-9]* | '0';
 BoolLiteral : True | False;
 NullLiteral : Null;
 
-fragment
-
-SChar : ~["\\\n\r] | '\\n' | '\\\\' | '\\"';
+SChar : ~["\\\n\r] | '\\' ["\\nr];
 
 Identifier : [a-zA-Z] [a-zA-Z_0-9]*;
 
 Whitespace : [ \t]+ -> skip ;
-Newline : ('\r' '\n' ? | '\n') -> skip;
+Newline : ('\r' '\n'? | '\n') -> skip;
 BlockComment : '/*' .*? '*/' -> skip;
 LineComment : '//' ~[\r\n]* -> skip;
