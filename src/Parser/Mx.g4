@@ -143,7 +143,6 @@ SChar : ~["\\\n\r] | '\\n' | '\\\\' | '\\"';
 Identifier : [a-zA-Z] [a-zA-Z_0-9]*;
 
 Whitespace : [ \t]+ -> skip ;
-
 Newline : ('\r' '\n' ? | '\n') -> skip;
-
+BlockComment : '/*' .*? '*/' -> skip;
 LineComment : '//' ~[\r\n]* -> skip;

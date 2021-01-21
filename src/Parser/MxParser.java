@@ -1,4 +1,3 @@
-// Generated from D:/mine/课程/计算机系统/编译器/mine/CP/CP/src/Parser\Mx.g4 by ANTLR 4.9
 package Parser;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
@@ -25,7 +24,7 @@ public class MxParser extends Parser {
 		LParen=42, RParen=43, LBracket=44, RBracket=45, LBrace=46, RBrace=47, 
 		Question=48, Colon=49, Semi=50, Comma=51, StringLiteral=52, IntLiteral=53, 
 		BoolLiteral=54, NullLiteral=55, Identifier=56, Whitespace=57, Newline=58, 
-		LineComment=59;
+		BlockComment=59, LineComment=60;
 	public static final int
 		RULE_program = 0, RULE_subprogram = 1, RULE_classDef = 2, RULE_funDef = 3, 
 		RULE_varDef = 4, RULE_varDefSig = 5, RULE_paraLis = 6, RULE_para = 7, 
@@ -61,7 +60,7 @@ public class MxParser extends Parser {
 			"Conty", "Assign", "PluPlu", "SubSub", "Dot", "LParen", "RParen", "LBracket", 
 			"RBracket", "LBrace", "RBrace", "Question", "Colon", "Semi", "Comma", 
 			"StringLiteral", "IntLiteral", "BoolLiteral", "NullLiteral", "Identifier", 
-			"Whitespace", "Newline", "LineComment"
+			"Whitespace", "Newline", "BlockComment", "LineComment"
 		};
 	}
 	private static final String[] _SYMBOLIC_NAMES = makeSymbolicNames();
@@ -2488,7 +2487,7 @@ public class MxParser extends Parser {
 	}
 
 	public static final String _serializedATN =
-		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3=\u0130\4\2\t\2\4"+
+		"\3\u608b\ua72a\u8133\ub9ed\u417c\u3be7\u7786\u5964\3>\u0130\4\2\t\2\4"+
 		"\3\t\3\4\4\t\4\4\5\t\5\4\6\t\6\4\7\t\7\4\b\t\b\4\t\t\t\4\n\t\n\4\13\t"+
 		"\13\4\f\t\f\4\r\t\r\4\16\t\16\4\17\t\17\4\20\t\20\4\21\t\21\4\22\t\22"+
 		"\4\23\t\23\3\2\7\2(\n\2\f\2\16\2+\13\2\3\2\3\2\3\3\3\3\3\3\5\3\62\n\3"+

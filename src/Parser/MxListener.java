@@ -1,4 +1,3 @@
-// Generated from D:/mine/课程/计算机系统/编译器/mine/CP/CP/src/Parser\Mx.g4 by ANTLR 4.9
 package Parser;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
