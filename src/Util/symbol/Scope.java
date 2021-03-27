@@ -8,18 +8,29 @@ import java.util.HashMap;
 
 public class Scope {
     public HashMap<String, varEntity> varMap = new HashMap<>();
+    public HashMap<String, RegId> varVidMap = new HashMap<>();
     public HashMap<String, funEntity> funMap = new HashMap<>();
     public HashMap<String, Type> typMap = new HashMap<>();
     public Scope fa;
+    public String abs_addr;
+    public int varCnt;
 
-    public Scope(Scope fa) { this.fa = fa; }
+    public Scope(Scope fa, String abs_addr) { this.fa = fa; this.abs_addr = abs_addr; }
 
-    public void defVar(String nam, varEntity var, position pos) {
+    /*public void defVar(String nam, varEntity var, position pos) {
         if (contType(nam, true))
             throw new semanticError("duplicated with type name " + nam, pos);
         if (varMap.containsKey(nam))
             throw new semanticError("varible " + nam + " redefine", pos);
         varMap.put(nam, var);
+    }*/
+    public void defVar(String nam, varEntity var, position pos, RegId rid) {
+        if (contType(nam, true))
+            throw new semanticError("duplicated with type name " + nam, pos);
+        if (varMap.containsKey(nam))
+            throw new semanticError("varible " + nam + " redefine", pos);
+        varMap.put(nam, var);
+        varVidMap.put(nam, rid);
     }
     public void defFun(String nam, funEntity fun, position pos) {
         if (contType(nam, true))
@@ -44,6 +55,11 @@ public class Scope {
     public varEntity getVar(String nam, position pos, boolean up) {
         if (varMap.containsKey(nam)) return varMap.get(nam);
         else if (fa != null && up) return fa.getVar(nam, pos, true);
+        else throw new semanticError("undefined variable " + nam, pos);
+    }
+    public RegId getVarRid(String nam, position pos, boolean up) {
+        if (varMap.containsKey(nam)) return varVidMap.get(nam);
+        else if (fa != null && up) return fa.getVarRid(nam, pos, true);
         else throw new semanticError("undefined variable " + nam, pos);
     }
     public funEntity getFun(String nam, position pos, boolean up) {

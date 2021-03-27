@@ -1,4 +1,5 @@
 import AST.programNode;
+import Codegen.toASM;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
 import Frontend.SymbolCollector;
@@ -34,11 +35,14 @@ public class Main {
             ASTBuilder astBuilder = new ASTBuilder();
             ASTRoot = (programNode) astBuilder.visit(parseTreeRoot);
 
-            Scope global = new Scope(null);
+            Scope global = new Scope(null, "");
             new SymbolCollector(global).visit(ASTRoot);
             new TypeCollector(global).visit(ASTRoot);
             global.varMap.clear();
+            global.varVidMap.clear();
             new SemanticChecker(global).visit(ASTRoot);
+            new toASM(global).visit(ASTRoot);
+
         } catch (Error er) {
             System.err.println(er.toString());
             throw new RuntimeException();
