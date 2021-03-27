@@ -1,3 +1,6 @@
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintStream;
 import AST.programNode;
 import Codegen.toASM;
 import Frontend.ASTBuilder;
@@ -20,6 +23,11 @@ public class Main {
         //String nam = "test.mx";
         //InputStream inp = new FileInputStream(nam);
         InputStream inp = System.in;
+
+        File file = new File("output.s");
+        PrintStream stream = new PrintStream(file);
+        System.setOut(stream);
+
         boolean onlySemantic = false, codegen = false;
         for (String arg : args) {
             switch (arg) {
