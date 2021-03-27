@@ -19,9 +19,9 @@ public class SemanticChecker implements ASTVisitor {
     public LinkedList<Integer> loop_idd = new LinkedList<Integer>();
     public LinkedList<Integer> if_idd = new LinkedList<Integer>();
 
-    public int vid = 0, sid = 0;
+    public int vid = 0;
 
-    public SemanticChecker(Scope glb) { this.glb = glb; }
+    public SemanticChecker(Scope glb) { this.glb = glb; this.glb.abs_addr = ""; }
 
     @Override
     public void visit(programNode o) {
@@ -31,6 +31,7 @@ public class SemanticChecker implements ASTVisitor {
         if (main.params.size() != 0)
             throw new semanticError("main funtion shouldn't have parameters", o.pos);
         o.scp = cur = glb;
+        glb.abs_addr = "";
         o.body.forEach(x -> x.accept(this));
     }
 

@@ -1,5 +1,4 @@
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintStream;
 import AST.programNode;
 import Codegen.toASM;
@@ -28,7 +27,7 @@ public class Main {
         PrintStream stream = new PrintStream(file);
         System.setOut(stream);
 
-        boolean onlySemantic = false, codegen = false;
+        boolean onlySemantic = false, codegen = true;
         for (String arg : args) {
             switch (arg) {
                 case "-semantic":

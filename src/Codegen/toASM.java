@@ -25,9 +25,11 @@ public class toASM implements ASTVisitor {
 
     @Override
     public void visit(programNode o) {
-        System.out.println("main:");
+        //System.out.println("\t.text\n\t.align\t2\n\t.globl\tmain\n\t.typr\tmain,@function");
+        //System.out.println("main:");
         funEntity main = glb.getFun("main", o.pos, false);
         o.body.forEach(x -> x.accept(this));
+        //System.out.println("\t.size\tmain, .-main");
     }
 
     @Override
@@ -47,7 +49,7 @@ public class toASM implements ASTVisitor {
     @Override
     public void visit(exprStmt o) {
         o.expr.accept(this);
-        System.out.println("\tsw\ta0," + o.rid.id * 4 +"(sp)");
+        System.out.println("\tsw\ta0,"  + o.rid.id * (-4) +"(sp)");
     }
     @Override
     public void visit(forStmt o) {
@@ -178,13 +180,13 @@ public class toASM implements ASTVisitor {
                 System.out.println("\tmv\ta1,a0");
                 break;
         }
-        System.out.println("\tsw\ta0," + o.rid.id * 4 +"(sp)");
+        System.out.println("\tsw\ta0,"  + o.rid.id * (-4) +"(sp)");
     }
     @Override
     public void visit(boolLiteral o) {
         if (o.val) System.out.println("\tli\ta0,1");
             else System.out.println("\tli\ta0,0");
-        System.out.println("\tsw\ta0," + o.rid.id * 4 +"(sp)");
+        System.out.println("\tsw\ta0,"  + o.rid.id * (-4) +"(sp)");
     }
     @Override
     public void visit(exprList o) {}
@@ -207,7 +209,7 @@ public class toASM implements ASTVisitor {
     @Override
     public void visit(intLiteral o) {
         System.out.println("\tli\ta0," + o.val);
-        System.out.println("\tsw\ta0," + o.rid.id * 4 +"(sp)");
+        System.out.println("\tsw\ta0,"  + o.rid.id * (-4) +"(sp)");
     }
     @Override
     public void visit(memberExpr o) {
@@ -305,7 +307,7 @@ public class toASM implements ASTVisitor {
         System.out.println("\t.string\t" + o.val);
         System.out.println("\tlui\ta0,%hi(" + ".STRING" + (scnt) + ")");
         System.out.println("\taddi\ta0,a0,%lo(" + ".STRING" + (scnt) + ")");
-        System.out.println("\tsw\ta0," + o.rid.id * 4 +"(sp)");
+        System.out.println("\tsw\ta0,"  + o.rid.id * (-4) +"(sp)");
     }
     @Override
     public void visit(subscriptExpr o) {
@@ -327,7 +329,7 @@ public class toASM implements ASTVisitor {
     }
     @Override
     public void visit(varExpr o) {
-        System.out.println("\tld\ta0," + o.rid.id * 4 +"(sp)");
+        System.out.println("\tld\ta0,"  + o.rid.id * (-4) +"(sp)");
     }
 
     @Override
@@ -343,15 +345,15 @@ public class toASM implements ASTVisitor {
     @Override
     public void visit(funDef o) { //???
         if (o.typ != null) curRetTyp = glb.getTyp(o.typ);
-        else curRetTyp = new primitiveType("void");
+            else curRetTyp = new primitiveType("void");
         retDone = false;
-        o.params.forEach(x ->{
-                cur.defVar(x.nam, new varEntity(x.nam, glb.getTyp(x.typ)), x.pos, new RegId(++vid));
-        });
+        cur = o.scp;
+        String curnam = o.abs_addr+o.nam;
+        System.out.println("\t.text\n\t.align\t2\n\t.globl\t"+curnam+"\n\t.typr\t"+curnam+",@function");
+        System.out.println(curnam+":");
         o.block.accept(this);
-        cur = cur.fa;
+        System.out.println("\t.size\t"+curnam+", .-"+curnam);
         if (o.nam.equals("main")) retDone = true;
-        o.scp = cur;
     }
     @Override
     public void visit(typeNode o) {
