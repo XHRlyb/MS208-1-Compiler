@@ -11,14 +11,30 @@ import Util.symbol.Scope;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+
+import java.io.FileInputStream;
 import java.io.InputStream;
 
 public class Main {
     public static void main(String[] args) throws Exception {
         //String nam = "test.mx";
         //InputStream inp = new FileInputStream(nam);
-
         InputStream inp = System.in;
+        boolean onlySemantic = false, codegen = false;
+        for (String arg : args) {
+            switch (arg) {
+                case "-semantic":
+                    onlySemantic = true;
+                    break;
+                case "-codegen":
+                    codegen = true;
+                    break;
+                case "-test":
+                    String name = "test1.mx";
+                    inp = new FileInputStream(name);
+                    break;
+            }
+        }
 
         try {
             programNode ASTRoot;
@@ -41,8 +57,10 @@ public class Main {
             global.varMap.clear();
             global.varVidMap.clear();
             new SemanticChecker(global).visit(ASTRoot);
-            new toASM(global).visit(ASTRoot);
 
+            if (!onlySemantic && codegen) {
+                new toASM(global).visit(ASTRoot);
+            }
         } catch (Error er) {
             System.err.println(er.toString());
             throw new RuntimeException();
