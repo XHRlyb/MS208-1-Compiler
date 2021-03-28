@@ -144,7 +144,7 @@ public class toASM implements ASTVisitor {
         retDone = true;
         if (o.retVal != null) {
             o.retVal.accept(this);
-            System.out.println("\tmv\tt3,a0");
+            System.out.println("\tmv\ta0,t3");
             System.out.println("\tj\t." + cur.abs_addr +"_END");
         }
     }
@@ -180,9 +180,9 @@ public class toASM implements ASTVisitor {
     public void visit(binaryExpr o) {
         cur = o.scp;
         o.src2.accept(this);
-        System.out.println("\tmv\tt3,t6");
+        System.out.println("\tmv\tt6,t3");
         o.src1.accept(this);
-        System.out.println("\tmv\tt6,t4");
+        System.out.println("\tmv\tt4,t6");
         switch (o.op) {
             case "*":
                 System.out.println("\tmul\tt3,t3,t4");
@@ -237,7 +237,7 @@ public class toASM implements ASTVisitor {
                 System.out.println("\tsnez\tt3,t3");
                 break;
             case "=":
-                System.out.println("\tmv\tt4,t3");
+                System.out.println("\tmv\tt3,t4");
                 if (o.src1.rid.gid == 0) {
                     System.out.println("\tsw\tt3,"+o.src1.rid.id * 4+"(sp)");
                 } else {
@@ -318,15 +318,21 @@ public class toASM implements ASTVisitor {
             System.out.println("\tsw\tt3,%lo(.GLB"+o.rid.gid+")(t4)");
         }
         o.bas.accept(this);
-    }
+    }/*
+    public void newww(ArrayList<exprNode> x) {
+        x.accept(this);
+        System.out.println("\tmv\ta0,t3");
+        System.out.println("\tcall\tmalloc");
+        System.out.println("\tlw\ta0,"+x.rid.id+"(sp)");
+    }*/
     @Override
     public void visit(newExpr o) {
         if (o.exprs != null) {
-            o.exprs.forEach(x -> {
+            //o.rid.id = newww(o.exprs.get(0));
+            for (int i = 0; i < o.exprs.size(); i++) {
+                exprNode x = o.exprs.get(i);
                 x.accept(this);
-                if (!x.typ.isInt())
-                    throw new semanticError("not int", x.pos);
-            });
+            }
         }
         o.typ = glb.getTyp(o.typNd);  //???
         o.scp = cur;
@@ -336,7 +342,7 @@ public class toASM implements ASTVisitor {
     @Override
     public void visit(prefixExpr o) {      //GG
         o.src.accept(this);     // t4是原值，t5是原值的地址，t3是新的值
-        System.out.println("\tmv\tt3,t4");
+        System.out.println("\tmv\tt4,t3");
         switch (o.op) {
             case "++":
                 System.out.println("\taddi\tt4,t4,1");
@@ -346,7 +352,7 @@ public class toASM implements ASTVisitor {
                     System.out.println("\tlui\tt5,%hi(.GLB"+o.src.rid.gid+")");
                     System.out.println("\tsw\tt4,%lo(.GLB"+o.src.rid.gid+")(t5)");
                 }
-                System.out.println("\tmv\tt4,t3");
+                System.out.println("\tmv\tt3,t4");
                 break;
             case "--":
                 System.out.println("\tsubi\tt4,t4,1");
@@ -356,7 +362,7 @@ public class toASM implements ASTVisitor {
                     System.out.println("\tlui\tt5,%hi(.GLB"+o.src.rid.gid+")");
                     System.out.println("\tsw\tt4,%lo(.GLB"+o.src.rid.gid+")(t5)");
                 }
-                System.out.println("\tmv\tt4,t3");
+                System.out.println("\tmv\tt3,t4");
                 break;
             case "+": break;
             case "-":
@@ -382,13 +388,14 @@ public class toASM implements ASTVisitor {
     }
     @Override
     public void visit(subscriptExpr o) {
+        cur = o.scp;
         o.bas.accept(this);
+        System.out.println("\tlw\tt3,"+o.bas.rid.id+"(sp)");
+        System.out.println("\tmv\tt6,t3");
         o.offs.accept(this);
-        System.out.println("\tmv\tt3,t4");
-        System.out.println("\taddi\tt3,t3," + o.bas.rid);
-        System.out.println("\tadd\tt3,t3,sp");
-        System.out.println("\tlw\tt4,0(t3)");
-        System.out.println("\tmv\tt4,t3");
+        System.out.println("\tadd\tt3,t3,t6");
+        System.out.println("\tlw\tt3,0(t3)");
+        System.out.println("\tsw\tt3,"+o.rid.id+"(sp)");
     }
     @Override
     public void visit(suffixExpr o) {  //GG
