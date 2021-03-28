@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.PrintStream;
 import AST.programNode;
+import Codegen.RegVidAlloc;
 import Codegen.toASM;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
@@ -58,11 +59,10 @@ public class Main {
             ASTBuilder astBuilder = new ASTBuilder();
             ASTRoot = (programNode) astBuilder.visit(parseTreeRoot);
 
-            Scope global = new Scope(null, "");
+            Scope global = new Scope(null, "", new RegVidAlloc());
             new SymbolCollector(global).visit(ASTRoot);
             new TypeCollector(global).visit(ASTRoot);
             global.varMap.clear();
-            global.varVidMap.clear();
             new SemanticChecker(global).visit(ASTRoot);
 
             if (!onlySemantic && codegen) {
