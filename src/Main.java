@@ -27,7 +27,7 @@ public class Main {
         PrintStream stream = new PrintStream(file);
         System.setOut(stream);
 
-        boolean onlySemantic = false, codegen = true;
+        boolean onlySemantic = false, codegen = false;
         for (String arg : args) {
             switch (arg) {
                 case "-semantic":
