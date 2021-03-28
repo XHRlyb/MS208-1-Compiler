@@ -5,6 +5,7 @@ import Util.position;
 
 public class stringLiteral extends exprNode {
     public String val;
+    public int id;
 
     public stringLiteral(String val, position pos) {
         super(pos);

@@ -4,6 +4,7 @@ import AST.*;
 import AST.statement.*;
 import AST.expression.*;
 import AST.declaration.*;
+import Codegen.RegVidAlloc;
 import Util.error.semanticError;
 import Util.symbol.*;
 import java.util.LinkedList;
@@ -15,13 +16,15 @@ public class SemanticChecker implements ASTVisitor {
     public boolean retDone;
     public int loopDep = 0;
 
-    public int loop_id = 0, if_id = 0;
-    public LinkedList<Integer> loop_idd = new LinkedList<Integer>();
-    public LinkedList<Integer> if_idd = new LinkedList<Integer>();
+    public int loop_id = 0, if_id = 0, scnt = 0;
+    public LinkedList<Integer> loop_idd = new LinkedList<>();
+    public LinkedList<Integer> if_idd = new LinkedList<>();
 
-    public int vid = 0;
-
-    public SemanticChecker(Scope glb) { this.glb = glb; this.glb.abs_addr = ""; }
+    public SemanticChecker(Scope glb) {
+        this.glb = glb;
+        this.glb.abs_addr = "";
+        this.glb.allc = new RegVidAlloc();
+    }
 
     @Override
     public void visit(programNode o) {
@@ -31,89 +34,76 @@ public class SemanticChecker implements ASTVisitor {
         if (main.params.size() != 0)
             throw new semanticError("main funtion shouldn't have parameters", o.pos);
         o.scp = cur = glb;
-        glb.abs_addr = "";
         o.body.forEach(x -> x.accept(this));
     }
 
     @Override
     public void visit(blockStmt o) {
         o.scp = cur;
-        cur.varCnt = vid;
+        RegVidAlloc alc = cur.allc;
         o.stmtLis.forEach(x -> {
             if (x instanceof blockStmt) {
-                cur = new Scope(cur, cur.abs_addr);
+                cur = new Scope(cur, cur.abs_addr, alc);
                 x.accept(this);
                 cur = cur.fa;
             } else {
                 x.accept(this);
             }
         });
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(breakStmt o) {
-        cur.varCnt = vid;
         if (loopDep == 0)
             throw new semanticError("break outside a loop", o.pos);
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(continueStmt o) {
-        cur.varCnt = vid;
         if (loopDep == 0)
             throw new semanticError("continue outside a loop", o.pos);
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(emptyStmt o) {}
     @Override
     public void visit(exprStmt o) {
-        cur.varCnt = vid;
         o.scp = cur;
-        o.rid = new RegId(++vid);
+        o.rid = new RegId(++cur.allc.cnt);
         o.expr.accept(this);
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(forStmt o) {
-        cur.varCnt = vid;
         loopDep++; loop_idd.addFirst(++loop_id);
         if (o.ini != null) o.ini.accept(this);
         if (o.cond != null) o.cond.accept(this);
         if (o.cond != null && !o.cond.typ.isBool())
             throw new semanticError("for cond must be bool " + ((primitiveType)o.cond.typ).nam, o.pos);
         if (o.inc != null) o.inc.accept(this);
-        cur = new Scope(cur, cur.abs_addr);
+        cur = new Scope(cur, cur.abs_addr, cur.allc);
         o.body.accept(this);
         cur = cur.fa;
         loopDep--; loop_idd.removeFirst();
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(ifStmt o) {
-        cur.varCnt = vid;
         if_idd.addFirst(++if_id);
         o.cond.accept(this);
         if (!o.cond.typ.isBool())
             throw new semanticError("if cond must be bool", o.pos);
-        cur = new Scope(cur, cur.abs_addr);
+        cur = new Scope(cur, cur.abs_addr, cur.allc);
         o.tStmt.accept(this);
         cur = cur.fa;
         if (o.fStmt != null) {
-            cur = new Scope(cur, cur.abs_addr);
+            cur = new Scope(cur, cur.abs_addr, cur.allc);
             o.fStmt.accept(this);
             cur = cur.fa;
         }
         if_idd.removeFirst();
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(returnStmt o) {
-        cur.varCnt = vid;
         retDone = true;
         if (o.retVal != null) {
             o.retVal.accept(this);
@@ -124,18 +114,14 @@ public class SemanticChecker implements ASTVisitor {
                 throw new semanticError("return type error", o.pos);
         }
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(varDefStmt o) {
-        cur.varCnt = vid;
         o.varLis.forEach(x -> x.accept(this));
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(varDefSigStmt o) {
-        cur.varCnt = vid;
         Type varTyp = glb.getTyp(o.typ); //???
         if (varTyp.isVoid())
             throw new semanticError("void variable", o.pos);
@@ -144,30 +130,25 @@ public class SemanticChecker implements ASTVisitor {
             if (!o.expr.typ.sameType(varTyp))
                 throw new semanticError("variable init fail", o.pos);
         }
-        o.rid = new RegId(++vid);
-        cur.defVar(o.nam, new varEntity(o.nam, varTyp), o.pos, o.rid);
+        cur.defVar(o.nam, new varEntity(o.nam, varTyp), o.pos);
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(whileStmt o) {
-        cur.varCnt = vid;
         loopDep++; loop_idd.addFirst(++loop_id);
         o.cond.accept(this);
         if (!o.cond.typ.isBool())
             throw new semanticError("while cond must be bool", o.pos);
-        cur = new Scope(cur, cur.abs_addr);
+        cur = new Scope(cur, cur.abs_addr, cur.allc);
         o.body.accept(this);
         cur = cur.fa;
         loopDep--; loop_idd.removeFirst();
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
 
     @Override
     public void visit(binaryExpr o) {
-        cur.varCnt = vid;
-        o.rid = new RegId(++vid);
+        o.rid = new RegId(++cur.allc.cnt);
         o.src1.accept(this);
         o.src2.accept(this);
         switch (o.op) {
@@ -217,21 +198,19 @@ public class SemanticChecker implements ASTVisitor {
                 break;
         }
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(boolLiteral o) {
-        cur.varCnt = vid;
         o.typ = new primitiveType("bool");
         o.scp = cur;
-        o.rid = new RegId(++vid);
-        cur.varCnt = vid - cur.varCnt;
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
-    public void visit(exprList o) { o.scp = cur; }
+    public void visit(exprList o) {
+        o.scp = cur;
+    }
     @Override
     public void visit(funCallExpr o) {
-        cur.varCnt = vid;
         if (o.bas instanceof varExpr) {  //???
             o.bas.typ = cur.getFun(((varExpr)o.bas).nam, o.pos, true);
         } else {
@@ -249,20 +228,16 @@ public class SemanticChecker implements ASTVisitor {
         }
         o.typ = fun.retTyp;
         o.scp = cur;
-        o.rid = new RegId(++vid);
-        cur.varCnt = vid - cur.varCnt;
+        //o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(intLiteral o) {
-        cur.varCnt = vid;
         o.typ = new primitiveType("int");
         o.scp = cur;
-        o.rid = new RegId(++vid);
-        cur.varCnt = vid - cur.varCnt;
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(memberExpr o) {
-        cur.varCnt = vid;
         o.bas.accept(this);
         if (o.bas.typ instanceof arrayType && o.isFun && o.nam.equals("size")) {
             funEntity fun = new funEntity("size", "");
@@ -311,12 +286,11 @@ public class SemanticChecker implements ASTVisitor {
             else
                 throw new semanticError("no such member " + o.nam, o.pos);
         }
+        o.rid = new RegId(++cur.allc.cnt);
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(newExpr o) {
-        cur.varCnt = vid;
         if (o.exprs != null) {
             o.exprs.forEach(x -> {
                 x.accept(this);
@@ -326,19 +300,15 @@ public class SemanticChecker implements ASTVisitor {
         }
         o.typ = glb.getTyp(o.typNd);  //???
         o.scp = cur;
-        o.rid = new RegId(++vid);
-        cur.varCnt = vid - cur.varCnt;
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(nullLiteral o) {
-        cur.varCnt = vid;
         o.typ = new primitiveType("null");
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(prefixExpr o) {
-        cur.varCnt = vid;
         o.src.accept(this);
         switch (o.op) {
             case "++": case "--":
@@ -359,21 +329,22 @@ public class SemanticChecker implements ASTVisitor {
             default:
                 break;
         }
+        o.rid = new RegId(++cur.allc.cnt);
         o.typ = o.src.typ;
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(stringLiteral o) {
-        cur.varCnt = vid;
         o.typ = new primitiveType("string");
         o.scp = cur;
-        o.rid = new RegId(++vid);
-        cur.varCnt = vid - cur.varCnt;
+        System.out.println("\t.text\n\t.section\t.rodata\n\t.align\t2");
+        System.out.println(".STRING" + (++scnt) + ":");
+        System.out.println("\t.string\t" + o.val);
+        o.id = scnt;
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(subscriptExpr o) {
-        cur.varCnt = vid;
         o.bas.accept(this);
         o.offs.accept(this);
         if (!(o.bas.typ instanceof arrayType))
@@ -384,11 +355,10 @@ public class SemanticChecker implements ASTVisitor {
         if (aryTyp.dim - 1 == 0) o.typ = aryTyp.typ;
         else o.typ = new arrayType(aryTyp.typ, aryTyp.dim - 1);
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(suffixExpr o) {
-        cur.varCnt = vid;
         o.src.accept(this);
         if (!o.src.typ.isInt())
             throw new semanticError("not int", o.pos);
@@ -396,31 +366,31 @@ public class SemanticChecker implements ASTVisitor {
             throw new semanticError("not assignable", o.pos);
         o.typ = o.src.typ;
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(thisExpr o) {
-        cur.varCnt = vid;
         if (curCls != null) o.typ = curCls;
         else throw new semanticError("this outside a class", o.pos);
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(varExpr o) {
-        cur.varCnt = vid;
         o.typ = cur.getVar(o.nam, o.pos, true).typ;
         o.scp = cur;
-        o.rid = new RegId(++vid);
-        cur.varCnt = vid - cur.varCnt;
+        varEntity var;
+        if (cur.contVar(o.nam, true)) {
+            var = cur.getVar(o.nam, o.pos, true);
+            o.rid = var.vid;
+        }
     }
 
     @Override
     public void visit(classDef o) { //???
-        cur.varCnt = vid;
         curCls = (classType)glb.typMap.get(o.nam);
-        cur = new Scope(cur,cur.abs_addr + o.nam + "_");
-        curCls.varMap.forEach((key, value) -> cur.defVar(key, value, o.pos, new RegId(++vid)));
+        cur = new Scope(cur,cur.abs_addr + o.nam + "_", new RegVidAlloc());
+        curCls.varMap.forEach((key, value) -> cur.defVar(key, value, o.pos));
         curCls.funMap.forEach((key, value) -> cur.defFun(key, value, o.pos));
         o.funLis.forEach(x -> x.accept(this));
         if (o.constructor != null) {
@@ -431,17 +401,15 @@ public class SemanticChecker implements ASTVisitor {
         o.scp = cur;
         cur = cur.fa;
         curCls = null;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(funDef o) { //???
-        cur.varCnt = vid;
         if (o.typ != null) curRetTyp = glb.getTyp(o.typ);
         else curRetTyp = new primitiveType("void");
         retDone = false;
-        cur = new Scope(cur, cur.abs_addr + o.nam);
+        cur = new Scope(cur, cur.abs_addr + o.nam, new RegVidAlloc());
         o.params.forEach(x ->
-                cur.defVar(x.nam, new varEntity(x.nam, glb.getTyp(x.typ)), x.pos, new RegId(++vid))
+                cur.defVar(x.nam, new varEntity(x.nam, glb.getTyp(x.typ)), x.pos)
         );
         o.block.accept(this);
         cur = cur.fa;
@@ -449,12 +417,9 @@ public class SemanticChecker implements ASTVisitor {
         if (o.typ != null && !o.typ.typ.equals("void") && !retDone)
             throw new semanticError("No return", o.pos);
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
     @Override
     public void visit(typeNode o) {
-        cur.varCnt = vid;
         o.scp = cur;
-        cur.varCnt = vid - cur.varCnt;
     }
 }

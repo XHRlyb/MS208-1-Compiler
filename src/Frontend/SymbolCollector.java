@@ -4,6 +4,7 @@ import AST.*;
 import AST.statement.*;
 import AST.expression.*;
 import AST.declaration.*;
+import Codegen.RegVidAlloc;
 import Util.symbol.*;
 
 public class SymbolCollector implements ASTVisitor {
@@ -82,7 +83,7 @@ public class SymbolCollector implements ASTVisitor {
     public void visit(returnStmt o) {}
     @Override
     public void visit(varDefSigStmt o) {
-        cur.defVar(o.nam, new varEntity(o.nam), o.pos, new RegId(0));
+        cur.defVar(o.nam, new varEntity(o.nam), o.pos);
     }
     @Override
     public void visit(varDefStmt o) {}
@@ -120,7 +121,7 @@ public class SymbolCollector implements ASTVisitor {
 
     @Override
     public void visit(classDef o) {
-        cur = new Scope(cur, "");
+        cur = new Scope(cur, "", new RegVidAlloc());
         classType a = new classType(o.nam);
         o.varLis.forEach(x -> x.accept(this));
         o.funLis.forEach(x -> x.accept(this));

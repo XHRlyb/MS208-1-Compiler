@@ -1,6 +1,7 @@
 package Util.symbol;
 
 abstract public class Type {
+    public int cnt = 0;
     public boolean isNull() {
         return false;
     }
