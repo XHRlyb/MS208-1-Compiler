@@ -412,11 +412,11 @@ public class SemanticChecker implements ASTVisitor {
                 cur.defVar(x.nam, new varEntity(x.nam, glb.getTyp(x.typ)), x.pos)
         );
         o.block.accept(this);
+        o.scp = cur;
         cur = cur.fa;
         if (o.nam.equals("main")) retDone = true;
         if (o.typ != null && !o.typ.typ.equals("void") && !retDone)
             throw new semanticError("No return", o.pos);
-        o.scp = cur;
     }
     @Override
     public void visit(typeNode o) {

@@ -180,9 +180,19 @@ public class toASM implements ASTVisitor {
     public void visit(binaryExpr o) {
         cur = o.scp;
         o.src2.accept(this);
-        System.out.println("\tmv\tt6,t3");
+        if (o.src2.rid.gid == 0) {
+            System.out.println("\tsw\tt3,"+o.src2.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\tt4,%hi(.GLB"+o.src2.rid.gid+")");
+            System.out.println("\tsw\tt3,%lo(.GLB"+o.src2.rid.gid+")(t4)");
+        }
         o.src1.accept(this);
-        System.out.println("\tmv\tt4,t6");
+        if (o.src2.rid.gid == 0) {
+            System.out.println("\tlw\tt4,"+o.src2.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\tt5,%hi(.GLB"+o.src2.rid.gid+")");
+            System.out.println("\tlw\tt4,%lo(.GLB"+o.src2.rid.gid+")(t5)");
+        }
         switch (o.op) {
             case "*":
                 System.out.println("\tmul\tt3,t3,t4");
@@ -287,6 +297,7 @@ public class toASM implements ASTVisitor {
             }
         }
         System.out.println("\tcall\t" + fun.abs_nam);
+        System.out.println("\tmv\tt3,a0");
         //cur?????
     }
     @Override
@@ -390,9 +401,19 @@ public class toASM implements ASTVisitor {
     public void visit(subscriptExpr o) {
         cur = o.scp;
         o.bas.accept(this);
-        System.out.println("\tlw\tt3,"+o.bas.rid.id+"(sp)");
-        System.out.println("\tmv\tt6,t3");
+        if (o.bas.rid.gid == 0) {
+            System.out.println("\tsw\tt3,"+o.bas.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\tt4,%hi(.GLB"+o.bas.rid.gid+")");
+            System.out.println("\tsw\tt3,%lo(.GLB"+o.bas.rid.gid+")(t4)");
+        }
         o.offs.accept(this);
+        if (o.bas.rid.gid == 0) {
+            System.out.println("\tlw\tt6,"+o.bas.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\tt4,%hi(.GLB"+o.bas.rid.gid+")");
+            System.out.println("\tlw\tt6,%lo(.GLB"+o.bas.rid.gid+")(t4)");
+        }
         System.out.println("\tadd\tt3,t3,t6");
         System.out.println("\tlw\tt3,0(t3)");
         System.out.println("\tsw\tt3,"+o.rid.id+"(sp)");
@@ -454,8 +475,8 @@ public class toASM implements ASTVisitor {
         if (o.typ != null) curRetTyp = glb.getTyp(o.typ);
             else curRetTyp = new primitiveType("void");
         retDone = false;
-        cur = o.block.scp;
-        String curnam = o.scp.abs_addr+o.nam;
+        cur = o.scp;
+        String curnam = o.scp.abs_addr;
         o.nam = curnam;
         System.out.println("\t.text\n\t.align\t2\n\t.globl\t"+curnam+"\n\t.type\t"+curnam+", @function");
         System.out.println(curnam+":");
@@ -463,6 +484,11 @@ public class toASM implements ASTVisitor {
         System.out.println("\tsw\ts0,"+(cur.allc.cnt+2)*4+"(sp)");
         System.out.println("\tsw\tra,"+(cur.allc.cnt+1)*4+"(sp)");
         System.out.println("\taddi\ts0,sp,"+(cur.allc.cnt+3) * 4);
+        for (int i = 0; i <o.params.size(); i++) {
+            varDefSigStmt x = o.params.get(i);
+            varEntity var = cur.getVar(x.nam, x.pos, false);
+            System.out.println("\tsw\ta"+i+","+var.vid.id*4+"(sp)");
+        }
         if (o.nam.equals("main")) {
             for (int i = 0; i < gVarDefs.size(); i++) {
                 varDefSigStmt x = gVarDefs.get(i);
