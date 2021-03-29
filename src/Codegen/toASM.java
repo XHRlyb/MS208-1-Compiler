@@ -289,11 +289,13 @@ public class toASM implements ASTVisitor {
             exprNode x = o.params.get(i);
             cur = x.scp;
             x.accept(this);
-            if (x.rid.gid == 0) {
-                System.out.println("\tlw\ta"+String.valueOf(i)+"," +x.rid.id * 4+"(sp)");
-            } else {
-                System.out.println("\tlui\tt4,%hi(.GLB"+x.rid.gid+")");
-                System.out.println("\tlw\ta"+String.valueOf(i)+",%lo(.GLB"+x.rid.gid+")(t4)");
+            if (x.rid.id != 0) {
+                if (x.rid.gid == 0) {
+                    System.out.println("\tlw\ta" + String.valueOf(i) + "," + x.rid.id * 4 + "(sp)");
+                } else {
+                    System.out.println("\tlui\tt4,%hi(.GLB" + x.rid.gid + ")");
+                    System.out.println("\tlw\ta" + String.valueOf(i) + ",%lo(.GLB" + x.rid.gid + ")(t4)");
+                }
             }
         }
         System.out.println("\tcall\t" + fun.abs_nam);
@@ -496,13 +498,24 @@ public class toASM implements ASTVisitor {
             }
         }
         o.block.accept(this);
+        boolean havret = false;
+        int len = o.block.stmtLis.size();
+        for (int i = 0; i < len; i++)
+            if (o.block.stmtLis.get(i) instanceof returnStmt)
+                havret = true;
+        if (o.typ.typ != "void" && !havret) {
+            System.out.println("\tli\tt3,0");
+            System.out.println("\tli\ta0,0");
+        }
         System.out.println("."+curnam+"_END:");
         System.out.println("\tlw\ts0,"+(cur.allc.cnt+2)*4+"(sp)");
         System.out.println("\tlw\tra,"+(cur.allc.cnt+1)*4+"(sp)");
         System.out.println("\taddi\tsp,sp,"+(cur.allc.cnt+3) * 4);
         System.out.println("\tret");
         System.out.println("\t.size\t"+curnam+", .-"+curnam);
-        if (o.nam.equals("main")) retDone = true;
+        if (o.nam.equals("main")) {
+            retDone = true;
+        }
     }
     @Override
     public void visit(typeNode o) {
