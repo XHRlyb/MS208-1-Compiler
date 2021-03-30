@@ -186,6 +186,7 @@ public class toASM implements ASTVisitor {
             System.out.println("\tlui\tt4,%hi(.GLB"+o.src2.rid.gid+")");
             System.out.println("\tsw\tt3,%lo(.GLB"+o.src2.rid.gid+")(t4)");
         }
+
         if (o.op.equals("=")) {
             if (o.src1 instanceof subscriptExpr) {
                 getsubs((subscriptExpr)o.src1);
@@ -211,70 +212,120 @@ public class toASM implements ASTVisitor {
                     System.out.println("\tsw\tt4,%lo(.GLB"+o.src1.rid.gid+")(t5)");
                 }
             }
-        } else {
-            o.src1.accept(this);
+            if (o.rid.gid == 0) {
+                System.out.println("\tsw\tt4,"+o.rid.id * 4+"(sp)");
+            } else {
+                System.out.println("\tlui\tt5,%hi(.GLB"+o.rid.gid+")");
+                System.out.println("\tsw\tt4,%lo(.GLB"+o.rid.gid+")(t5)");
+            }
+            System.out.println("\tmv\tt3,t4");
+            return;
+        }
+
+        o.src1.accept(this);
+
+        if (o.src1.typ.isString() && o.src2.typ.isString()) {
+            System.out.println("\tmv\ta0,t3");
             if (o.src2.rid.gid == 0) {
-                System.out.println("\tlw\tt4," + o.src2.rid.id * 4 + "(sp)");
+                System.out.println("\tlw\ta1," + o.src2.rid.id * 4 + "(sp)");
             } else {
                 System.out.println("\tlui\tt5,%hi(.GLB" + o.src2.rid.gid + ")");
-                System.out.println("\tlw\tt4,%lo(.GLB" + o.src2.rid.gid + ")(t5)");
+                System.out.println("\tlw\ta1,%lo(.GLB" + o.src2.rid.gid + ")(t5)");
             }
             switch (o.op) {
-                case "*":
-                    System.out.println("\tmul\tt3,t3,t4");
-                    break;
-                case "/":
-                    System.out.println("\tdiv\tt3,t3,t4");
-                    break;
-                case "%":
-                    System.out.println("\trem\tt3,t3,t4");
-                    break;
-                case "-":
-                    System.out.println("\tsub\tt3,t3,t4");
-                    break;
-                case "<<":
-                    System.out.println("\tsll\tt3,t3,t4");
-                    break;
-                case ">>":
-                    System.out.println("\tsrl\tt3,t3,t4");
-                    break;
-                case "&":
-                case "&&":
-                    System.out.println("\tand\tt3,t3,t4");
-                    break;
-                case "^":
-                    System.out.println("\txor\tt3,t3,t4");
-                    break;
-                case "|":
-                case "||":
-                    System.out.println("\tor\tt3,t3,t4");
-                    break;
                 case "+":
-                    System.out.println("\tadd\tt3,t3,t4");
+                    System.out.println("\tcall\tmy_string_plus");
                     break;
                 case "<":
-                    System.out.println("\tslt\tt3,t3,t4");
+                    System.out.println("\tcall\tmy_string_le");
                     break;
                 case ">":
-                    System.out.println("\tslt\tt3,t4,t3");
+                    System.out.println("\tcall\tmy_string_ge");
                     break;
                 case "<=":
-                    System.out.println("\tslt\tt3,t4,t3");
-                    System.out.println("\txori\tt3,t3,1");
+                    System.out.println("\tcall\tmy_string_leq");
                     break;
                 case ">=":
-                    System.out.println("\tslt\tt3,t3,t4");
-                    System.out.println("\txori\tt3,t3,1");
+                    System.out.println("\tcall\tmy_string_geq");
                     break;
                 case "==":
-                    System.out.println("\tsub\tt3,t3,t4");
-                    System.out.println("\tseqz\tt3,t3");
+                    System.out.println("\tcall\tmy_string_eq");
                     break;
                 case "!=":
-                    System.out.println("\tsub\tt3,t3,t4");
-                    System.out.println("\tsnez\tt3,t3");
+                    System.out.println("\tcall\tmy_string_neq");
                     break;
             }
+            if (o.rid.gid == 0) {
+                System.out.println("\tsw\ta0,"+o.rid.id * 4+"(sp)");
+            } else {
+                System.out.println("\tlui\tt4,%hi(.GLB"+o.rid.gid+")");
+                System.out.println("\tsw\ta0,%lo(.GLB"+o.rid.gid+")(t4)");
+            }
+            System.out.println("\tmv\tt3,a0");
+            return;
+        }
+
+        if (o.src2.rid.gid == 0) {
+            System.out.println("\tlw\tt4," + o.src2.rid.id * 4 + "(sp)");
+        } else {
+            System.out.println("\tlui\tt5,%hi(.GLB" + o.src2.rid.gid + ")");
+            System.out.println("\tlw\tt4,%lo(.GLB" + o.src2.rid.gid + ")(t5)");
+        }
+        switch (o.op) {
+            case "*":
+                System.out.println("\tmul\tt3,t3,t4");
+                break;
+            case "/":
+                System.out.println("\tdiv\tt3,t3,t4");
+                break;
+            case "%":
+                System.out.println("\trem\tt3,t3,t4");
+                break;
+            case "-":
+                System.out.println("\tsub\tt3,t3,t4");
+                break;
+            case "<<":
+                System.out.println("\tsll\tt3,t3,t4");
+                break;
+            case ">>":
+                System.out.println("\tsrl\tt3,t3,t4");
+                break;
+            case "&":
+            case "&&":
+                System.out.println("\tand\tt3,t3,t4");
+                break;
+            case "^":
+                System.out.println("\txor\tt3,t3,t4");
+                break;
+            case "|":
+            case "||":
+                System.out.println("\tor\tt3,t3,t4");
+                break;
+            case "+":
+                System.out.println("\tadd\tt3,t3,t4");
+                break;
+            case "<":
+                System.out.println("\tslt\tt3,t3,t4");
+                break;
+            case ">":
+                System.out.println("\tslt\tt3,t4,t3");
+                break;
+            case "<=":
+                System.out.println("\tslt\tt3,t4,t3");
+                System.out.println("\txori\tt3,t3,1");
+                break;
+            case ">=":
+                System.out.println("\tslt\tt3,t3,t4");
+                System.out.println("\txori\tt3,t3,1");
+                break;
+            case "==":
+                System.out.println("\tsub\tt3,t3,t4");
+                System.out.println("\tseqz\tt3,t3");
+                break;
+            case "!=":
+                System.out.println("\tsub\tt3,t3,t4");
+                System.out.println("\tsnez\tt3,t3");
+                break;
         }
         if (o.rid.gid == 0) {
             System.out.println("\tsw\tt3,"+o.rid.id * 4+"(sp)");
