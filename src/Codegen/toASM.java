@@ -350,21 +350,16 @@ public class toASM implements ASTVisitor {
     @Override
     public void visit(funCallExpr o) {
         cur = o.scp;
-        if (o.bas instanceof varExpr) {  //???
-            o.bas.typ = cur.getFun(((varExpr)o.bas).nam, o.pos, true);
-        } else {
-            cur = o.bas.scp;
+        if (!(o.bas instanceof varExpr)) {
             o.bas.accept(this);
         }
         funEntity fun = (funEntity)o.bas.typ;
         if (o.bas instanceof memberExpr && ((memberExpr)o.bas).bas.typ instanceof arrayType) {
-            o.bas.accept(this);
             System.out.println("\tlw\ts3,0(s3)");
             System.out.println("\tmv\ta0,s3");
             return;
         }
         if (o.bas instanceof memberExpr && ((memberExpr)o.bas).bas.typ.isString()) {
-            o.bas.accept(this);
             System.out.println("\tmv\ta0,s3");
             for (int i = 0; i < o.params.size(); i++) {
                 exprNode x = o.params.get(i);
@@ -391,6 +386,10 @@ public class toASM implements ASTVisitor {
             System.out.println("\tmv\ts3,a0");
             return;
         }
+        if (curCls != null) {
+            System.out.println("\tsw\tt7,"+o.rid.id*4+"(sp)");
+            System.out.println("\tmv\tt7,t3");
+        }
         for (int i = 0; i < o.params.size(); i++) {
             exprNode x = o.params.get(i);
             cur = x.scp;
@@ -406,7 +405,9 @@ public class toASM implements ASTVisitor {
         }
         System.out.println("\tcall\t" + fun.abs_nam);
         System.out.println("\tmv\ts3,a0");
-        //cur?????
+        if (curCls != null) {
+            System.out.println("\tlw\tt7,"+o.rid.id*4+"(sp)");
+        }
     }
     @Override
     public void visit(intLiteral o) {
@@ -419,45 +420,37 @@ public class toASM implements ASTVisitor {
         cur = clss.get(o.nam); // s3基地址，s4偏移量
         //System.out.println(o.nam);
         o.bas.accept(this);
-        if (o.bas.typ instanceof arrayType && o.isFun && o.nam.equals("size")) {
-            if (o.rid.gid == 0) {
-                System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
-            } else {
-                System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
-                System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
-            }
-            return;
-        }         //???
-        if (o.bas.typ.isString() && o.isFun) {
-            if (o.rid.gid == 0) {
-                System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
-            } else {
-                System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
-                System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
-            }
-            return;
-        }
-
-        varEntity var = cur.getVar(o.nam, o.pos, true);
-        if (o.bas.rid.gid == 0) {
-            System.out.println("\tlw\ts3,"+o.bas.rid.id * 4+"(sp)");
-        } else {
-            System.out.println("\tlui\ts4,%hi(.GLB"+o.bas.rid.gid+")");
-            System.out.println("\tlw\ts3,%lo(.GLB"+o.bas.rid.gid+")(s4)");
-        }
-        if (var.vid.gid == 0) {
-            System.out.println("\tlw\ts3,"+var.vid.id * 4+"(s3)");
-        } else {
-            System.out.println("\taddi\ts4,s3,%hi(.GLB"+var.vid.gid+")");
-            System.out.println("\tlw\ts3,%lo(.GLB"+var.vid.gid+")(s4)");
-        }
         if (o.rid.gid == 0) {
             System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
             System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
             System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
-        o.bas.accept(this);
+        if (o.bas.typ instanceof arrayType && o.isFun && o.nam.equals("size")) {
+            return;
+        }         //???
+        if (o.bas.typ.isString() && o.isFun) {
+            return;
+        }
+        classType clsTyp = (classType)o.bas.typ;
+        if (o.isFun) {
+            //
+        } else {
+            cur = clss.get(clsTyp.nam);
+            varEntity var = cur.getVar(o.nam, o.pos, true);
+            if (var.vid.gid == 0) {
+                System.out.println("\tlw\ts3,"+var.vid.id * 4+"(s3)");
+            } else {
+                System.out.println("\taddi\ts3,s3,%hi(.GLB"+var.vid.gid+")");
+                System.out.println("\tlw\ts3,%lo(.GLB"+var.vid.gid+")(s5)");
+            }
+            if (o.rid.gid == 0) {
+                System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
+            } else {
+                System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+                System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
+            }
+        }
     }
     public void newww(newExpr o, int id) {
         if (id == o.exprs.size()) return;
@@ -677,6 +670,13 @@ public class toASM implements ASTVisitor {
     @Override
     public void visit(thisExpr o) {
         //??????
+        System.out.println("\tmv\ts3,s7");
+        if (o.rid.gid == 0) {
+            System.out.println("\tlw\ts7,"+o.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tlw\ts7,%lo(.GLB"+o.rid.gid+")(s4)");
+        }
     }
     @Override
     public void visit(varExpr o) {
@@ -685,7 +685,11 @@ public class toASM implements ASTVisitor {
         //System.out.println(var.vid.id);
         //System.out.println((cur == glb)+var.nam+cur.contVar(o.nam, false));
         if (var.vid.gid == 0) {
-            System.out.println("\tlw\ts3,"+var.vid.id * 4+"(sp)");
+            if (curCls == null) {
+                System.out.println("\tlw\ts3,"+var.vid.id * 4+"(sp)");
+            } else {
+                System.out.println("\tlw\ts3,"+var.vid.id * 4+"(s7)");
+            }
         } else {
             System.out.println("\tlui\ts4,%hi(.GLB"+var.vid.gid+")");
             System.out.println("\tlw\ts3,%lo(.GLB"+var.vid.gid+")(s4)");
@@ -702,6 +706,7 @@ public class toASM implements ASTVisitor {
         if (o.constructor != null) {
             o.constructor.accept(this);
         }
+        curCls = null;
     }
     @Override
     public void visit(funDef o) { //???
