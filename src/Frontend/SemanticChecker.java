@@ -230,6 +230,7 @@ public class SemanticChecker implements ASTVisitor {
         o.typ = fun.retTyp;
         o.scp = cur;
         o.rid = new RegId(++cur.allc.cnt);
+        cur.allc.cnt++;
     }
     @Override
     public void visit(intLiteral o) {
