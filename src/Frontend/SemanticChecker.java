@@ -229,7 +229,7 @@ public class SemanticChecker implements ASTVisitor {
         }
         o.typ = fun.retTyp;
         o.scp = cur;
-        //o.rid = new RegId(++cur.allc.cnt);
+        o.rid = new RegId(++cur.allc.cnt);
     }
     @Override
     public void visit(intLiteral o) {
@@ -273,7 +273,7 @@ public class SemanticChecker implements ASTVisitor {
             o.typ = fun;
             return;
         }
-        if (!(o.bas.typ instanceof classType)) 
+        if (!(o.bas.typ instanceof classType))
             throw new semanticError("no such class", o.pos);
         classType clsTyp = (classType)o.bas.typ;
         if (o.isFun) {
@@ -418,6 +418,8 @@ public class SemanticChecker implements ASTVisitor {
         o.params.forEach(x ->
                 cur.defVar(x.nam, new varEntity(x.nam, glb.getTyp(x.typ)), x.pos)
         );
+        funEntity fun = cur.getFun(o.nam, o.pos, true);
+        fun.abs_nam = cur.abs_addr;
         o.block.accept(this);
         o.scp = cur;
         cur = cur.fa;
