@@ -418,8 +418,8 @@ public class SemanticChecker implements ASTVisitor {
         o.params.forEach(x ->
                 cur.defVar(x.nam, new varEntity(x.nam, glb.getTyp(x.typ)), x.pos)
         );
-        funEntity fun = cur.getFun(o.nam, o.pos, true);
-        fun.abs_nam = cur.abs_addr;
+        funEntity fun = cur.getFun1(o.nam, o.pos, true);
+        if (fun != null) fun.abs_nam = cur.abs_addr;
         o.block.accept(this);
         o.scp = cur;
         cur = cur.fa;
