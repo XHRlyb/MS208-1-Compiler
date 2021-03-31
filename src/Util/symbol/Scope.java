@@ -73,7 +73,7 @@ public class Scope {
     }
     public funEntity getFun1(String nam, position pos, boolean up) {  // todo
         if (funMap.containsKey(nam)) return funMap.get(nam);
-        else if (fa != null && up) return fa.getFun(nam, pos, true);
+        else if (fa != null && up) return fa.getFun1(nam, pos, true);
         return null;
     }
     public Type getTyp(String nam, position pos, boolean up) {
