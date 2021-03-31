@@ -237,20 +237,29 @@ public class toASM implements ASTVisitor {
                     System.out.println("\tlw\ts4,%lo(.GLB" + o.src2.rid.gid + ")(s5)");
                 }
                 System.out.println("\tsw\ts4,0(s3)");
-            } else {
-                o.src1.accept(this);
+            } else if (o.src1 instanceof memberExpr) {
+                getmem((memberExpr)o.src1);
                 if (o.src2.rid.gid == 0) {
                     System.out.println("\tlw\ts4," + o.src2.rid.id * 4 + "(sp)");
                 } else {
                     System.out.println("\tlui\ts5,%hi(.GLB" + o.src2.rid.gid + ")");
                     System.out.println("\tlw\ts4,%lo(.GLB" + o.src2.rid.gid + ")(s5)");
                 }
-                if (o.src1.rid.gid == 0) {
-                    System.out.println("\tsw\ts4,"+o.src1.rid.id * 4+"(sp)");
-                } else {
-                    System.out.println("\tlui\ts5,%hi(.GLB"+o.src1.rid.gid+")");
-                    System.out.println("\tsw\ts4,%lo(.GLB"+o.src1.rid.gid+")(s5)");
-                }
+                System.out.println("\tsw\ts4,0(s3)");
+            } else {
+                    o.src1.accept(this);
+                    if (o.src2.rid.gid == 0) {
+                        System.out.println("\tlw\ts4," + o.src2.rid.id * 4 + "(sp)");
+                    } else {
+                        System.out.println("\tlui\ts5,%hi(.GLB" + o.src2.rid.gid + ")");
+                        System.out.println("\tlw\ts4,%lo(.GLB" + o.src2.rid.gid + ")(s5)");
+                    }
+                    if (o.src1.rid.gid == 0) {
+                        System.out.println("\tsw\ts4,"+o.src1.rid.id * 4+"(sp)");
+                    } else {
+                        System.out.println("\tlui\ts5,%hi(.GLB"+o.src1.rid.gid+")");
+                        System.out.println("\tsw\ts4,%lo(.GLB"+o.src1.rid.gid+")(s5)");
+                    }
             }
             if (o.rid.gid == 0) {
                 System.out.println("\tsw\ts4,"+o.rid.id * 4+"(sp)");
@@ -492,6 +501,26 @@ public class toASM implements ASTVisitor {
                 System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
                 System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
             }
+        }
+    }
+    public void getmem(memberExpr o) {
+        o.bas.accept(this);
+        classType clsTyp = (classType)o.bas.typ;
+        cur = clss.get(clsTyp.nam);
+        varEntity var = cur.getVar(o.nam, o.pos, true);
+        if (var.vid.gid == 0) {
+            System.out.println("\taddi\ts3,s3,"+var.vid.id * 4);
+        } else {
+            System.out.println("\tlui\ts4,%hi(.GLB"+var.vid.gid+")");
+            System.out.println("\taddi\ts4,s4,%hi(.GLB"+var.vid.gid+")");
+            System.out.println("\tslli\ts4,s4,2");
+            System.out.println("\tadd\ts3,s3,s4");
+        }
+        if (o.rid.gid == 0) {
+            System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
     }
     public void newww(newExpr o, int id) {
@@ -793,6 +822,7 @@ public class toASM implements ASTVisitor {
             System.out.println("\tli\ts3,0");
             System.out.println("\tli\ta0,0");
         }
+        cur = o.scp;
         //o.params.forEach(x->System.out.println(x.nam));
         System.out.println("."+curnam+"_END:");
         System.out.println("\tlw\ts0,"+(cur.allc.cnt+2)*4+"(sp)");
