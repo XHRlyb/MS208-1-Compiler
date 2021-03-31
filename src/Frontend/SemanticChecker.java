@@ -411,7 +411,10 @@ public class SemanticChecker implements ASTVisitor {
         if (o.typ != null) curRetTyp = glb.getTyp(o.typ);
         else curRetTyp = new primitiveType("void");
         retDone = false;
-        cur = new Scope(cur, cur.abs_addr + o.nam, new RegVidAlloc());
+        if (o.nam.equals("main"))
+            cur = new Scope(cur, cur.abs_addr + o.nam, new RegVidAlloc(cur.allc.cnt + 1));
+        else
+            cur = new Scope(cur, cur.abs_addr + o.nam, new RegVidAlloc());
         o.params.forEach(x ->
                 cur.defVar(x.nam, new varEntity(x.nam, glb.getTyp(x.typ)), x.pos)
         );
