@@ -130,7 +130,8 @@ public class SemanticChecker implements ASTVisitor {
             if (!o.expr.typ.sameType(varTyp))
                 throw new semanticError("variable init fail", o.pos);
         }
-        cur.defVar(o.nam, new varEntity(o.nam, varTyp), o.pos);
+        //if (!cur.contVar(o.nam, true))
+            cur.defVar(o.nam, new varEntity(o.nam, varTyp), o.pos);
         o.scp = cur;
     }
     @Override
@@ -291,16 +292,19 @@ public class SemanticChecker implements ASTVisitor {
     }
     @Override
     public void visit(newExpr o) {
+        int wow = 0;
         if (o.exprs != null) {
             o.exprs.forEach(x -> {
                 x.accept(this);
                 if (!x.typ.isInt())
                     throw new semanticError("not int", x.pos);
             });
+            wow = o.exprs.size();
         }
         o.typ = glb.getTyp(o.typNd);  //???
         o.scp = cur;
         o.rid = new RegId(++cur.allc.cnt);
+        cur.allc.cnt += wow + wow;
     }
     @Override
     public void visit(nullLiteral o) {
