@@ -395,7 +395,10 @@ public class SemanticChecker implements ASTVisitor {
     public void visit(classDef o) { //???
         curCls = (classType)glb.typMap.get(o.nam);
         cur = new Scope(cur,cur.abs_addr + o.nam + "_", new RegVidAlloc());
-        curCls.varMap.forEach((key, value) -> cur.defVar(key, value, o.pos));
+        curCls.varMap.forEach((key, value) -> {
+            cur.defVar(key, value, o.pos);
+            value.incls = true;
+        });
         curCls.funMap.forEach((key, value) -> cur.defFun(key, value, o.pos));
         o.funLis.forEach(x -> x.accept(this));
         if (o.constructor != null) {

@@ -246,6 +246,16 @@ public class toASM implements ASTVisitor {
                     System.out.println("\tlw\ts4,%lo(.GLB" + o.src2.rid.gid + ")(s5)");
                 }
                 System.out.println("\tsw\ts4,0(s3)");
+            } else if (o.src1 instanceof varExpr) {
+                getvar((varExpr)o.src1);
+                if (o.src2.rid.gid == 0) {
+                    System.out.println("\tlw\ts4," + o.src2.rid.id * 4 + "(sp)");
+                } else {
+                    System.out.println("\tlui\ts5,%hi(.GLB" + o.src2.rid.gid + ")");
+                    System.out.println("\tlw\ts4,%lo(.GLB" + o.src2.rid.gid + ")(s5)");
+                }
+                System.out.println("\tsw\ts4,0(s3)");
+                System.out.println("\tmv\ts3,s4");
             } else {
                     o.src1.accept(this);
                     if (o.src2.rid.gid == 0) {
@@ -416,7 +426,8 @@ public class toASM implements ASTVisitor {
                 x.accept(this);
                 if (x.rid.id != 0 && i <= 6) {
                     if (x.rid.gid == 0) {
-                        System.out.println("\tlw\ta" + String.valueOf(i+1) + "," + x.rid.id * 4 + "(sp)");
+                        //System.out.println("\tlw\ta" + String.valueOf(i+1) + "," + x.rid.id * 4 + "(sp)");
+                        System.out.println("\tmv\ta" + String.valueOf(i+1) + ",s3");
                     } else {
                         System.out.println("\tlui\ts4,%hi(.GLB" + x.rid.gid + ")");
                         System.out.println("\tlw\ta" + String.valueOf(i+1) + ",%lo(.GLB" + x.rid.gid + ")(s4)");
@@ -438,7 +449,7 @@ public class toASM implements ASTVisitor {
         }
         if (curCls != null) {
             System.out.println("\tsw\ts7,"+(o.rid.id+1)*4+"(sp)");
-            System.out.println("\tmv\ts7,s3");
+            System.out.println("\tmv\ts3,s7");
         }
         for (int i = 0; i < o.params.size(); i++) {
             exprNode x = o.params.get(i);
@@ -446,7 +457,8 @@ public class toASM implements ASTVisitor {
             x.accept(this);
             if (x.rid.id != 0 && i <= 7) {
                 if (x.rid.gid == 0) {
-                    System.out.println("\tlw\ta" + String.valueOf(i) + "," + x.rid.id * 4 + "(sp)");
+                //System.out.println("\tlw\ta" + String.valueOf(i) + "," + x.rid.id * 4 + "(sp)");
+                System.out.println("\tmv\ta" + String.valueOf(i) + ",s3");
                 } else {
                     System.out.println("\tlui\ts4,%hi(.GLB" + x.rid.gid + ")");
                     System.out.println("\tlw\ta" + String.valueOf(i) + ",%lo(.GLB" + x.rid.gid + ")(s4)");
@@ -758,17 +770,32 @@ public class toASM implements ASTVisitor {
         //System.out.println(var.vid.id);
         //System.out.println((cur == glb)+var.nam+cur.contVar(o.nam, false));
         if (var.vid.gid == 0) {
-            if (curCls == null) {
-                System.out.println("\tlw\ts3,"+var.vid.id * 4+"(sp)");
-            } else {
+            if (var.incls) {
                 System.out.println("\tlw\ts3,"+var.vid.id * 4+"(s7)");
+            } else {
+                System.out.println("\tlw\ts3,"+var.vid.id * 4+"(sp)");
             }
         } else {
             System.out.println("\tlui\ts4,%hi(.GLB"+var.vid.gid+")");
             System.out.println("\tlw\ts3,%lo(.GLB"+var.vid.gid+")(s4)");
         }
     }
-
+    public void getvar(varExpr o) {
+        cur = o.scp;
+        varEntity var = cur.getVar(o.nam, o.pos, true);
+        if (var.vid.gid == 0) {
+            if (var.incls) {
+                System.out.println("\tli\ts4,"+var.vid.id * 4);
+                System.out.println("\tadd\ts3,s7,s4");
+            } else {
+                System.out.println("\tli\ts4,"+var.vid.id*4);
+                System.out.println("\tadd\ts3,sp,s4");
+            }
+        } else {
+            System.out.println("\tlui\ts4,%hi(.GLB"+var.vid.gid+")");
+            System.out.println("\taddi\ts3,s4,%lo(.GLB"+var.vid.gid+")");
+        }
+    }
     @Override
     public void visit(classDef o) { //???
         curCls = (classType)glb.typMap.get(o.nam);
