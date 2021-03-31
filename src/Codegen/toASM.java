@@ -141,11 +141,11 @@ public class toASM implements ASTVisitor {
     }
     @Override
     public void visit(returnStmt o) {
-        cur = o.scp;
         retDone = true;
         if (o.retVal != null) {
             o.retVal.accept(this);
             System.out.println("\tmv\ta0,s3");
+            cur = o.scp;
             System.out.println("\tj\t." + cur.abs_addr +"_END");
         }
     }
@@ -414,7 +414,7 @@ public class toASM implements ASTVisitor {
                 exprNode x = o.params.get(i);
                 cur = x.scp;
                 x.accept(this);
-                if (x.rid.id != 0) {
+                if (x.rid.id != 0 && i <= 6) {
                     if (x.rid.gid == 0) {
                         System.out.println("\tlw\ta" + String.valueOf(i+1) + "," + x.rid.id * 4 + "(sp)");
                     } else {
@@ -444,7 +444,7 @@ public class toASM implements ASTVisitor {
             exprNode x = o.params.get(i);
             cur = x.scp;
             x.accept(this);
-            if (x.rid.id != 0) {
+            if (x.rid.id != 0 && i <= 7) {
                 if (x.rid.gid == 0) {
                     System.out.println("\tlw\ta" + String.valueOf(i) + "," + x.rid.id * 4 + "(sp)");
                 } else {
@@ -799,11 +799,13 @@ public class toASM implements ASTVisitor {
         for (int i = 0; i <o.params.size(); i++) {
             varDefSigStmt x = o.params.get(i);
             varEntity var = cur.getVar(x.nam, x.pos, true);
-            if (var.vid.gid == 0) {
-                System.out.println("\tsw\ta"+i+","+var.vid.id * 4+"(sp)");
-            } else {
-                System.out.println("\tlui\ta"+i+",%hi(.GLB"+var.vid.gid+")");
-                System.out.println("\tsw\ta"+i+",%lo(.GLB"+var.vid.gid+")(s4)");
+            if (i <= 7) {
+                if (var.vid.gid == 0) {
+                    System.out.println("\tsw\ta"+i+","+var.vid.id * 4+"(sp)");
+                } else {
+                    System.out.println("\tlui\ta"+i+",%hi(.GLB"+var.vid.gid+")");
+                    System.out.println("\tsw\ta"+i+",%lo(.GLB"+var.vid.gid+")(s4)");
+                }
             }
         }
         if (o.nam.equals("main")) {
@@ -818,7 +820,7 @@ public class toASM implements ASTVisitor {
         for (int i = 0; i < len; i++)
             if (o.block.stmtLis.get(i) instanceof returnStmt)
                 havret = true;
-        if (o.typ.typ != "void" && !havret) {
+        if (o.typ != null && o.typ.typ != "void" && !havret) {
             System.out.println("\tli\ts3,0");
             System.out.println("\tli\ta0,0");
         }
