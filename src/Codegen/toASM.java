@@ -447,10 +447,10 @@ public class toASM implements ASTVisitor {
             System.out.println("\tsw\ts3,"+o.rid.id*4+"(sp)");
             return;
         }
-        if (curCls != null) {
+        //if (curCls != null) {
             System.out.println("\tsw\ts7,"+(o.rid.id+1)*4+"(sp)");
             System.out.println("\tmv\ts3,s7");
-        }
+        //}
         for (int i = 0; i < o.params.size(); i++) {
             exprNode x = o.params.get(i);
             cur = x.scp;
@@ -467,9 +467,9 @@ public class toASM implements ASTVisitor {
         }
         System.out.println("\tcall\t" + fun.abs_nam);
         System.out.println("\tmv\ts3,a0");
-        if (curCls != null) {
+        //if (curCls != null) {
             System.out.println("\tlw\ts7,"+(o.rid.id+1)*4+"(sp)");
-        }
+        //}
         System.out.println("\tsw\ts3,"+o.rid.id*4+"(sp)");
     }
     @Override
@@ -612,7 +612,9 @@ public class toASM implements ASTVisitor {
         }
     }
     @Override
-    public void visit(nullLiteral o) {}
+    public void visit(nullLiteral o) {
+        System.out.println("\tmv\ts3,zero");
+    }
     @Override
     public void visit(prefixExpr o) {      //GG
         o.src.accept(this);     // s4是原值，s5是原值的地址，s3是新的值
@@ -670,11 +672,11 @@ public class toASM implements ASTVisitor {
     public void visit(subscriptExpr o) {
         cur = o.scp;
         o.bas.accept(this);
-        if (o.bas.rid.gid == 0) {
-            System.out.println("\tsw\ts3,"+o.bas.rid.id * 4+"(sp)");
+        if (o.rid.gid == 0) {
+            System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
-            System.out.println("\tlui\ts4,%hi(.GLB"+o.bas.rid.gid+")");
-            System.out.println("\tsw\ts3,%lo(.GLB"+o.bas.rid.gid+")(s4)");
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
         o.offs.accept(this);
         if (o.offs.rid.gid == 0) {
@@ -686,11 +688,11 @@ public class toASM implements ASTVisitor {
         System.out.println("\taddi\ts6,s6,1");
         System.out.println("\tli\ts4,4");
         System.out.println("\tmul\ts6,s4,s6");
-        if (o.bas.rid.gid == 0) {
-            System.out.println("\tlw\ts3,"+o.bas.rid.id * 4+"(sp)");
+        if (o.rid.gid == 0) {
+            System.out.println("\tlw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
-            System.out.println("\tlui\ts4,%hi(.GLB"+o.bas.rid.gid+")");
-            System.out.println("\tlw\ts3,%lo(.GLB"+o.bas.rid.gid+")(s4)");
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tlw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
         System.out.println("\tadd\ts3,s3,s6");
         System.out.println("\tlw\ts3,0(s3)");
@@ -699,11 +701,11 @@ public class toASM implements ASTVisitor {
     public void getsubs(subscriptExpr o) {
         cur = o.scp;
         o.bas.accept(this);
-        if (o.bas.rid.gid == 0) {
-            System.out.println("\tsw\ts3,"+o.bas.rid.id * 4+"(sp)");
+        if (o.rid.gid == 0) {
+            System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
-            System.out.println("\tlui\ts4,%hi(.GLB"+o.bas.rid.gid+")");
-            System.out.println("\tsw\ts3,%lo(.GLB"+o.bas.rid.gid+")(s4)");
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
         o.offs.accept(this);
         if (o.offs.rid.gid == 0) {
@@ -715,11 +717,11 @@ public class toASM implements ASTVisitor {
         System.out.println("\taddi\ts6,s6,1");
         System.out.println("\tli\ts4,4");
         System.out.println("\tmul\ts6,s4,s6");
-        if (o.bas.rid.gid == 0) {
-            System.out.println("\tlw\ts3,"+o.bas.rid.id * 4+"(sp)");
+        if (o.rid.gid == 0) {
+            System.out.println("\tlw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
-            System.out.println("\tlui\ts4,%hi(.GLB"+o.bas.rid.gid+")");
-            System.out.println("\tlw\ts3,%lo(.GLB"+o.bas.rid.gid+")(s4)");
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tlw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
         System.out.println("\tadd\ts3,s3,s6");
         System.out.println("\tsw\ts3,"+o.rid.id*4+"(sp)");
