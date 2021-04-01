@@ -110,8 +110,10 @@ public class toASM implements ASTVisitor {
         cur = o.scp;
         if (o.ini != null) o.ini.accept(this);
         System.out.println(".LOOP_COND" + loop_idd.getFirst() + ":");
-        if (o.cond != null) o.cond.accept(this);
-        System.out.println("\tbeq\ts3,zero,.LOOP_END" + loop_idd.getFirst());
+        if (o.cond != null) {
+            o.cond.accept(this);
+            System.out.println("\tbeq\ts3,zero,.LOOP_END" + loop_idd.getFirst());
+        }
         cur = o.body.scp;
         o.body.accept(this);
         System.out.println(".LOOP_BEG" + loop_idd.getFirst() + ":");
@@ -646,25 +648,65 @@ public class toASM implements ASTVisitor {
         System.out.println("\tmv\ts4,s3");
         switch (o.op) {
             case "++":
-                System.out.println("\taddi\ts4,s4,1");
-                if (o.src.rid.gid == 0) {
-                    System.out.println("\tsw\ts4,"+o.src.rid.id * 4+"(sp)");
+                System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
+                if (o.src instanceof subscriptExpr) {
+                    getsubs((subscriptExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\taddi\ts5,s4,1");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s5");
+                } else if (o.src instanceof memberExpr) {
+                    getmem((memberExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\taddi\ts5,s4,1");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s5");
+                } else if (o.src instanceof varExpr) {
+                    getvar((varExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\taddi\ts5,s4,1");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s5");
                 } else {
-                    System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
-                    System.out.println("\tsw\ts4,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    System.out.println("\taddi\ts3,s3,1");
+                    if (o.src.rid.gid == 0) {
+                        System.out.println("\tsw\ts3,"+o.src.rid.id * 4+"(sp)");
+                    } else {
+                        System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
+                        System.out.println("\tsw\ts3,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    }
                 }
-                System.out.println("\tmv\ts3,s4");
                 break;
             case "--":
-                System.out.println("\tli\ts5,1");
-                System.out.println("\tsub\ts4,s4,s5");
-                if (o.src.rid.gid == 0) {
-                    System.out.println("\tsw\ts4,"+o.src.rid.id * 4+"(sp)");
+                System.out.println("\tli\ts6,1");
+                System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
+                if (o.src instanceof subscriptExpr) {
+                    getsubs((subscriptExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\tsub\ts5,s4,s6");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s5");
+                } else if (o.src instanceof memberExpr) {
+                    getmem((memberExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\tsub\ts5,s4,s6");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s5");
+                } else if (o.src instanceof varExpr) {
+                    getvar((varExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\tsub\ts5,s4,s6");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s5");
                 } else {
-                    System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
-                    System.out.println("\tsw\ts4,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    System.out.println("\tsub\ts3,s3,s6");
+                    if (o.src.rid.gid == 0) {
+                        System.out.println("\tsw\ts3,"+o.src.rid.id * 4+"(sp)");
+                    } else {
+                        System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
+                        System.out.println("\tsw\ts3,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    }
                 }
-                System.out.println("\tmv\ts3,s4");
                 break;
             case "+": break;
             case "-":
@@ -756,22 +798,64 @@ public class toASM implements ASTVisitor {
         o.src.accept(this);     // s3是原值也是新的值，s5是原值的地址
         switch (o.op) {
             case "++":
-                System.out.println("\taddi\ts4,s3,1");
-                if (o.src.rid.gid == 0) {
-                    System.out.println("\tsw\ts4,"+o.src.rid.id * 4+"(sp)");
+                System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
+                if (o.src instanceof subscriptExpr) {
+                    getsubs((subscriptExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\taddi\ts5,s4,1");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s4");
+                } else if (o.src instanceof memberExpr) {
+                    getmem((memberExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\taddi\ts5,s4,1");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s4");
+                } else if (o.src instanceof varExpr) {
+                    getvar((varExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\taddi\ts5,s4,1");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s4");
                 } else {
-                    System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
-                    System.out.println("\tsw\ts4,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    System.out.println("\taddi\ts4,s3,1");
+                    if (o.src.rid.gid == 0) {
+                        System.out.println("\tsw\ts4,"+o.src.rid.id * 4+"(sp)");
+                    } else {
+                        System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
+                        System.out.println("\tsw\ts4,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    }
                 }
                 break;
             case "--":
-                System.out.println("\tli\ts5,1");
-                System.out.println("\tsub\ts4,s3,s5");
-                if (o.src.rid.gid == 0) {
-                    System.out.println("\tsw\ts4,"+o.src.rid.id * 4+"(sp)");
+                System.out.println("\tli\ts6,1");
+                System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
+                if (o.src instanceof subscriptExpr) {
+                    getsubs((subscriptExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\tsub\ts5,s4,s6");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s4");
+                } else if (o.src instanceof memberExpr) {
+                    getmem((memberExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\tsub\ts5,s4,s6");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s4");
+                } else if (o.src instanceof varExpr) {
+                    getvar((varExpr)o.src);
+                    System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
+                    System.out.println("\tsub\ts5,s4,s6");
+                    System.out.println("\tsw\ts5,0(s3)");
+                    System.out.println("\tmv\ts3,s4");
                 } else {
-                    System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
-                    System.out.println("\tsw\ts4,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    System.out.println("\tsub\ts4,s3,s6");
+                    if (o.src.rid.gid == 0) {
+                        System.out.println("\tsw\ts4,"+o.src.rid.id * 4+"(sp)");
+                    } else {
+                        System.out.println("\tlui\ts5,%hi(.GLB"+o.src.rid.gid+")");
+                        System.out.println("\tsw\ts4,%lo(.GLB"+o.src.rid.gid+")(s5)");
+                    }
                 }
                 break;
             default:
