@@ -151,6 +151,7 @@ public class toASM implements ASTVisitor {
             cur = o.scp;
             System.out.println("\tj\t." + cur.abs_addr +"_END");
         } else {
+            cur = o.scp;
             System.out.println("\tj\t." + cur.abs_addr +"_END");
         }
     }
