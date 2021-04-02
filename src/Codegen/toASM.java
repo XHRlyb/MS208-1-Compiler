@@ -572,6 +572,14 @@ public class toASM implements ASTVisitor {
             System.out.println("\tmv\ta0,s3");
             System.out.println(("\tcall\tmalloc"));
             System.out.println(("\tsw\ta0,"+(o.rid.id+id+1)*4+"(sp)"));
+            if (id == 0) {
+                if (o.rid.gid == 0) {
+                    System.out.println("\tsw\ta0,"+o.rid.id * 4+"(sp)");
+                } else {
+                    System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+                    System.out.println("\tsw\ta0,%lo(.GLB"+o.rid.gid+")(s4)");
+                }
+            }
             System.out.println("\tsw\ts4,0(a0)");
             return;
         }
@@ -582,7 +590,7 @@ public class toASM implements ASTVisitor {
             System.out.println("\tlw\ts4,%lo(.GLB"+x.rid.gid+")(s5)");
         }
         System.out.println("\taddi\ts3,s4,1");
-        System.out.println("\tslli\ts3,2");
+        System.out.println("\tslli\ts3,s3,2");
         System.out.println("\tmv\ta0,s3");
         System.out.println(("\tcall\tmalloc"));
         System.out.println(("\tsw\ta0,"+(o.rid.id+id+1)*4+"(sp)"));
@@ -620,6 +628,56 @@ public class toASM implements ASTVisitor {
         System.out.println("\tj\t.LOOP_BEG"+lid);
         System.out.println(".LOOP_END"+lid+":");
     }
+
+/*public void newww(newExpr o, int id) {
+    if (id == o.exprs.size()) return;
+    exprNode x = o.exprs.get(id);
+    int lid = ++loop_id, cnt = o.exprs.size();
+    if (x.rid.gid == 0) {
+        System.out.println("\tlw\ts4,"+x.rid.id * 4+"(sp)");
+    } else {
+        System.out.println("\tlui\ts5,%hi(.GLB"+x.rid.gid+")");
+        System.out.println("\tlw\ts4,%lo(.GLB"+x.rid.gid+")(s5)");
+    }
+    System.out.println("\taddi\ts3,s4,1");
+    System.out.println("\tmul\ts3,s3,s6");
+    System.out.println("\tmv\ta0,s3");
+    System.out.println(("\tcall\tmalloc"));
+    System.out.println(("\tsw\ta0,"+(o.rid.id+id+1)*4+"(sp)"));
+    if (id == 0) {
+        if (o.rid.gid == 0) {
+            System.out.println("\tsw\ta0,"+o.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tsw\ta0,%lo(.GLB"+o.rid.gid+")(s4)");
+        }
+    }
+    else {
+        System.out.println(("\tlw\ts3,"+(o.rid.id+id)*4+"(sp)"));
+        System.out.println(("\taddi\ts3,s3,4"));
+        System.out.println(("\tsw\ta0,0(sp)"));
+    }
+    System.out.println("\tsw\ts4,0(a0)");
+
+    System.out.println("\tli\ts3,1");
+    System.out.println(("\tsw\ts3,"+(o.rid.id+id+cnt+1)*4+"(sp)"));
+    System.out.println(".LOOP_BEG"+lid+":");
+    System.out.println(("\tlw\ts3,"+(o.rid.id+id+cnt+1)*4+"(sp)"));
+    if (x.rid.gid == 0) {
+        System.out.println("\tlw\ts4,"+x.rid.id * 4+"(sp)");
+    } else {
+        System.out.println("\tlui\ts5,%hi(.GLB"+x.rid.gid+")");
+        System.out.println("\tlw\ts4,%lo(.GLB"+x.rid.gid+")(s5)");
+    }
+    System.out.println("\tblt\ts4,s3,.LOOP_END"+lid);
+    newww(o, id+1);
+    System.out.println(("\tlw\ts3,"+(o.rid.id+id+cnt+1)*4+"(sp)"));
+    System.out.println("\taddi\ts3,s3,1");
+    System.out.println(("\tsw\ts3,"+(o.rid.id+id+cnt+1)*4+"(sp)"));
+    System.out.println(("\tlw\ts3,"+(o.rid.id+id+cnt+1)*4+"(sp)"));
+    System.out.println("\tj\t.LOOP_BEG"+lid);
+    System.out.println(".LOOP_END"+lid+":");
+}*/
     @Override
     public void visit(newExpr o) {
         if (o.exprs != null) {
