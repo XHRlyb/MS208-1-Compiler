@@ -150,6 +150,8 @@ public class toASM implements ASTVisitor {
             System.out.println("\tmv\ta0,s3");
             cur = o.scp;
             System.out.println("\tj\t." + cur.abs_addr +"_END");
+        } else {
+            System.out.println("\tj\t." + cur.abs_addr +"_END");
         }
     }
     @Override
@@ -553,6 +555,26 @@ public class toASM implements ASTVisitor {
         if (id == o.exprs.size()) return;
         exprNode x = o.exprs.get(id);
         int lid = ++loop_id, cnt = o.exprs.size();
+        if (id == o.exprs.size() - 1) {
+            if (x.rid.gid == 0) {
+                System.out.println("\tlw\ts4,"+x.rid.id * 4+"(sp)");
+            } else {
+                System.out.println("\tlui\ts5,%hi(.GLB"+x.rid.gid+")");
+                System.out.println("\tlw\ts4,%lo(.GLB"+x.rid.gid+")(s5)");
+            }
+            cur = clss.get(o.typNd.typ);
+            if (cur != null)
+                System.out.println("\tli\ts5,"+cur.allc.cnt*4);
+            else
+                System.out.println("\tli\ts5,4");
+            System.out.println("\taddi\ts3,s4,1");
+            System.out.println("\tmul\ts3,s3,s5");
+            System.out.println("\tmv\ta0,s3");
+            System.out.println(("\tcall\tmalloc"));
+            System.out.println(("\tsw\ta0,"+(o.rid.id+id+1)*4+"(sp)"));
+            System.out.println("\tsw\ts4,0(a0)");
+            return;
+        }
         if (x.rid.gid == 0) {
             System.out.println("\tlw\ts4,"+x.rid.id * 4+"(sp)");
         } else {
@@ -560,7 +582,7 @@ public class toASM implements ASTVisitor {
             System.out.println("\tlw\ts4,%lo(.GLB"+x.rid.gid+")(s5)");
         }
         System.out.println("\taddi\ts3,s4,1");
-        System.out.println("\tmul\ts3,s3,s6");
+        System.out.println("\tslli\ts3,2");
         System.out.println("\tmv\ta0,s3");
         System.out.println(("\tcall\tmalloc"));
         System.out.println(("\tsw\ta0,"+(o.rid.id+id+1)*4+"(sp)"));
@@ -614,7 +636,6 @@ public class toASM implements ASTVisitor {
                     System.out.println("\tsw\ts3,%lo(.GLB"+x.rid.gid+")(s4)");
                 }
             }
-            System.out.println("\tli\ts6,4");
             cur = o.scp;
             newww(o,0);
             if (o.rid.gid == 0) {
@@ -678,27 +699,30 @@ public class toASM implements ASTVisitor {
                 }
                 break;
             case "--":
-                System.out.println("\tli\ts6,1");
                 System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
                 if (o.src instanceof subscriptExpr) {
                     getsubs((subscriptExpr)o.src);
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
                     System.out.println("\tsub\ts5,s4,s6");
                     System.out.println("\tsw\ts5,0(s3)");
                     System.out.println("\tmv\ts3,s5");
                 } else if (o.src instanceof memberExpr) {
                     getmem((memberExpr)o.src);
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
                     System.out.println("\tsub\ts5,s4,s6");
                     System.out.println("\tsw\ts5,0(s3)");
                     System.out.println("\tmv\ts3,s5");
                 } else if (o.src instanceof varExpr) {
                     getvar((varExpr)o.src);
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
                     System.out.println("\tsub\ts5,s4,s6");
                     System.out.println("\tsw\ts5,0(s3)");
                     System.out.println("\tmv\ts3,s5");
                 } else {
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tsub\ts3,s3,s6");
                     if (o.src.rid.gid == 0) {
                         System.out.println("\tsw\ts3,"+o.src.rid.id * 4+"(sp)");
@@ -746,15 +770,16 @@ public class toASM implements ASTVisitor {
             System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
         o.offs.accept(this);
+        System.out.println("\tmv\ts6,s3");
+        /*
         if (o.offs.rid.gid == 0) {
-            System.out.println("\tlw\ts6,"+o.offs.rid.id * 4+"(sp)");
+            System.out.println("\tlw\ts6,"+(o.offs.rid.id)*4+"(sp)");
         } else {
-            System.out.println("\tlui\ts4,%hi(.GLB"+o.offs.rid.gid+")");
+            System.out.println("\tlui\ts4,%hi(.GLB"+(o.offs.rid.gid+")");
             System.out.println("\tlw\ts6,%lo(.GLB"+o.offs.rid.gid+")(s4)");
-        }
+        }*/
         System.out.println("\taddi\ts6,s6,1");
-        System.out.println("\tli\ts4,4");
-        System.out.println("\tmul\ts6,s4,s6");
+        System.out.println("\tslli\ts6,s6,2");
         if (o.rid.gid == 0) {
             System.out.println("\tlw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
@@ -775,7 +800,17 @@ public class toASM implements ASTVisitor {
             System.out.println("\tsw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
         o.offs.accept(this);
-        if (o.offs.rid.gid == 0) {
+        System.out.println("\tmv\ts6,s3");
+        System.out.println("\taddi\ts6,s6,1");
+        System.out.println("\tslli\ts6,s6,2");
+        if (o.rid.gid == 0) {
+            System.out.println("\tlw\ts3,"+o.rid.id * 4+"(sp)");
+        } else {
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tlw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
+        }
+        System.out.println("\tadd\ts3,s3,s6");
+        /*if (o.offs.rid.gid == 0) {
             System.out.println("\tlw\ts6,"+o.offs.rid.id * 4+"(sp)");
         } else {
             System.out.println("\tlui\ts4,%hi(.GLB"+o.offs.rid.gid+")");
@@ -790,7 +825,7 @@ public class toASM implements ASTVisitor {
             System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
             System.out.println("\tlw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
-        System.out.println("\tadd\ts3,s3,s6");
+        System.out.println("\tadd\ts3,s3,s6");*/
         System.out.println("\tsw\ts3,"+o.rid.id*4+"(sp)");
     }
     @Override
@@ -828,27 +863,30 @@ public class toASM implements ASTVisitor {
                 }
                 break;
             case "--":
-                System.out.println("\tli\ts6,1");
                 System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
                 if (o.src instanceof subscriptExpr) {
                     getsubs((subscriptExpr)o.src);
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
                     System.out.println("\tsub\ts5,s4,s6");
                     System.out.println("\tsw\ts5,0(s3)");
                     System.out.println("\tmv\ts3,s4");
                 } else if (o.src instanceof memberExpr) {
                     getmem((memberExpr)o.src);
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
                     System.out.println("\tsub\ts5,s4,s6");
                     System.out.println("\tsw\ts5,0(s3)");
                     System.out.println("\tmv\ts3,s4");
                 } else if (o.src instanceof varExpr) {
                     getvar((varExpr)o.src);
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tlw\ts4,"+o.rid.id * 4+"(sp)");
                     System.out.println("\tsub\ts5,s4,s6");
                     System.out.println("\tsw\ts5,0(s3)");
                     System.out.println("\tmv\ts3,s4");
                 } else {
+                    System.out.println("\tli\ts6,1");
                     System.out.println("\tsub\ts4,s3,s6");
                     if (o.src.rid.gid == 0) {
                         System.out.println("\tsw\ts4,"+o.src.rid.id * 4+"(sp)");
@@ -880,7 +918,7 @@ public class toASM implements ASTVisitor {
         varEntity var = cur.getVar(o.nam, o.pos, true);
         //System.out.println(var.vid.id);
         //System.out.println((cur == glb)+var.nam+cur.contVar(o.nam, false));
-        if (var.vid.gid == 0) {
+        /*if (var.vid.gid == 0) {
             if (var.incls) {
                 System.out.println("\tlw\ts3,"+var.vid.id * 4+"(s7)");
             } else {
@@ -889,22 +927,31 @@ public class toASM implements ASTVisitor {
         } else {
             System.out.println("\tlui\ts4,%hi(.GLB"+var.vid.gid+")");
             System.out.println("\tlw\ts3,%lo(.GLB"+var.vid.gid+")(s4)");
+        }*/
+        if (o.rid.gid == 0) {
+            if (o.inCls) {
+                System.out.println("\tlw\ts3,"+o.rid.id * 4+"(s7)");
+            } else {
+                System.out.println("\tlw\ts3,"+o.rid.id * 4+"(sp)");
+            }
+        } else {
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\tlw\ts3,%lo(.GLB"+o.rid.gid+")(s4)");
         }
     }
     public void getvar(varExpr o) {
         cur = o.scp;
-        varEntity var = cur.getVar(o.nam, o.pos, true);
-        if (var.vid.gid == 0) {
-            if (var.incls) {
-                System.out.println("\tli\ts4,"+var.vid.id * 4);
+        if (o.rid.gid == 0) {
+            if (o.inCls) {
+                System.out.println("\tli\ts4,"+o.rid.id * 4);
                 System.out.println("\tadd\ts3,s7,s4");
             } else {
-                System.out.println("\tli\ts4,"+var.vid.id*4);
+                System.out.println("\tli\ts4,"+o.rid.id*4);
                 System.out.println("\tadd\ts3,sp,s4");
             }
         } else {
-            System.out.println("\tlui\ts4,%hi(.GLB"+var.vid.gid+")");
-            System.out.println("\taddi\ts3,s4,%lo(.GLB"+var.vid.gid+")");
+            System.out.println("\tlui\ts4,%hi(.GLB"+o.rid.gid+")");
+            System.out.println("\taddi\ts3,s4,%lo(.GLB"+o.rid.gid+")");
         }
     }
     @Override

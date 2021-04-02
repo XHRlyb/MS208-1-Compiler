@@ -388,6 +388,7 @@ public class SemanticChecker implements ASTVisitor {
         if (cur.contVar(o.nam, true)) {
             var = cur.getVar(o.nam, o.pos, true);
             o.rid = var.vid;
+            o.inCls = var.incls;
         }
     }
 
