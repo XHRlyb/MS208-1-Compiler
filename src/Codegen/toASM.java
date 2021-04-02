@@ -436,7 +436,7 @@ public class toASM implements ASTVisitor {
         funEntity fun = (funEntity)o.bas.typ;
         if (o.bas instanceof memberExpr && ((memberExpr)o.bas).bas.typ instanceof arrayType) {
             System.out.println("\tlw\ts3,0(s3)");
-            System.out.println("\tmv\ta0,s3");
+            //System.out.println("\tmv\ta0,s3");
             
                 System.out.println("\tli\ts8," + o.rid.id * 4);
                 System.out.println("\tadd\ts5,sp,s8");
@@ -484,7 +484,7 @@ public class toASM implements ASTVisitor {
             exprNode x = o.params.get(i);
             //cur = x.scp;
             x.accept(this);
-            if (x.rid.id != 0 && i <= 7) {
+            if (/*x.rid.id != 0 && */i <= 7) {
                 System.out.println("\tmv\ta" + String.valueOf(i) + ",s3");
             }
         }
@@ -492,7 +492,7 @@ public class toASM implements ASTVisitor {
             
                 System.out.println("\tli\ts8," + o.rid.id * 4);
                 System.out.println("\tadd\ts5,sp,s8");
-            System.out.println("\tlw\ts7,0(s5)");
+                System.out.println("\tlw\ts7,0(s5)");
             //System.out.println("\tlw\ts7,"+o.rid.id*4+"(sp)");
         }
         System.out.println("\tcall\t" + fun.abs_nam);
@@ -523,9 +523,8 @@ public class toASM implements ASTVisitor {
         cur = clss.get(o.nam); // s3基地址，s4偏移量
         o.bas.accept(this);
         if (o.rid.gid == 0) {
-            
-                System.out.println("\tli\ts8," + o.rid.id * 4);
-                System.out.println("\tadd\ts5,sp,s8");
+            System.out.println("\tli\ts8," + o.rid.id * 4);
+            System.out.println("\tadd\ts5,sp,s8");
             System.out.println("\tsw\ts3,0(s5)");
             //System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
@@ -545,7 +544,7 @@ public class toASM implements ASTVisitor {
             cur = clss.get(clsTyp.nam);
             varEntity var = cur.getVar(o.nam, o.pos, true);
             if (var.vid.gid == 0) {
-                System.out.println("\tli\ts8," + var.vid.id * 4);
+                System.out.println("\tli\ts8," + (var.vid.id+1) * 4);
                 System.out.println("\tadd\ts5,s3,s8");
                 System.out.println("\tlw\ts3,0(s5)");
                 //System.out.println("\tlw\ts3,"+var.vid.id * 4+"(s3)");
@@ -554,8 +553,7 @@ public class toASM implements ASTVisitor {
                 System.out.println("\tlw\ts3,%lo(.GLB"+var.vid.gid+")(s5)");
             }
             if (o.rid.gid == 0) {
-                
-                System.out.println("\tli\ts8," + o.rid.id * 4);
+                System.out.println("\tli\ts8," + (o.rid.id+1) * 4);
                 System.out.println("\tadd\ts5,sp,s8");
                 System.out.println("\tsw\ts3,0(s5)");
                 //System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
@@ -903,9 +901,8 @@ public class toASM implements ASTVisitor {
         cur = o.scp;
         o.bas.accept(this);
         if (o.rid.gid == 0) {
-            
-                System.out.println("\tli\ts8," + o.rid.id * 4);
-                System.out.println("\tadd\ts5,sp,s8");
+            System.out.println("\tli\ts8," + o.rid.id * 4);
+            System.out.println("\tadd\ts5,sp,s8");
             System.out.println("\tsw\ts3,0(s5)");
             //System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
@@ -917,9 +914,8 @@ public class toASM implements ASTVisitor {
         System.out.println("\taddi\ts6,s6,1");
         System.out.println("\tslli\ts6,s6,2");
         if (o.rid.gid == 0) {
-            
-                System.out.println("\tli\ts8," + o.rid.id * 4);
-                System.out.println("\tadd\ts5,sp,s8");
+            System.out.println("\tli\ts8," + o.rid.id * 4);
+            System.out.println("\tadd\ts5,sp,s8");
             System.out.println("\tlw\ts3,0(s5)");
             //System.out.println("\tlw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
@@ -928,9 +924,8 @@ public class toASM implements ASTVisitor {
         }
         System.out.println("\tadd\ts3,s3,s6");
         System.out.println("\tlw\ts3,0(s3)");
-        
-                System.out.println("\tli\ts8," + o.rid.id * 4);
-                System.out.println("\tadd\ts5,sp,s8");
+        System.out.println("\tli\ts8," + o.rid.id * 4);
+        System.out.println("\tadd\ts5,sp,s8");
         System.out.println("\tsw\ts3,0(s5)");
         //System.out.println("\tsw\ts3,"+o.rid.id*4+"(sp)");
     }
@@ -938,9 +933,8 @@ public class toASM implements ASTVisitor {
         cur = o.scp;
         o.bas.accept(this);
         if (o.rid.gid == 0) {
-            
-                System.out.println("\tli\ts8," + o.rid.id * 4);
-                System.out.println("\tadd\ts5,sp,s8");
+            System.out.println("\tli\ts8," + o.rid.id * 4);
+            System.out.println("\tadd\ts5,sp,s8");
             System.out.println("\tsw\ts3,0(s5)");
             //System.out.println("\tsw\ts3,"+o.rid.id * 4+"(sp)");
         } else {
@@ -1163,9 +1157,8 @@ public class toASM implements ASTVisitor {
             varEntity var = cur.getVar(x.nam, x.pos, true);
             if (i <= 7) {
                 if (var.vid.gid == 0) {
-                    
-                System.out.println("\tli\ts8," + var.vid.id * 4);
-                System.out.println("\tadd\ts5,sp,s8");
+                    System.out.println("\tli\ts8," + var.vid.id * 4);
+                    System.out.println("\tadd\ts5,sp,s8");
                     System.out.println("\tsw\ta"+i+",0(s5)");
                     //System.out.println("\tsw\ta"+i+","+var.vid.id * 4+"(sp)");
                 } else {
