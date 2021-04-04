@@ -23,6 +23,7 @@ public class toASM implements ASTVisitor {
     public LinkedList<Integer> loop_idd = new LinkedList<Integer>();
     public LinkedList<Integer> if_idd = new LinkedList<Integer>();
     public HashMap<String, Scope> clss = new HashMap<>();
+    public HashMap<String, classDef> clds = new HashMap<>();
     public HashMap<String, Scope> funs = new HashMap<>();
     public ArrayList<varDefSigStmt> gVarDefs = new ArrayList<>();
 
@@ -637,18 +638,30 @@ public class toASM implements ASTVisitor {
                 System.out.println("\tlw\ts4,%lo(.GLB"+x.rid.gid+")(s5)");
             }
             cur = clss.get(o.typNd.typ);
-            if (cur != null)
-                System.out.println("\tli\ts5,"+cur.allc.cnt*4);
-            else
+            classDef oo = clds.get(o.typNd.typ);
+            if (cur != null) {
+                System.out.println("\tli\ts5," + cur.allc.cnt * 4);
+                System.out.println("\taddi\ts3,s4,1");
+                System.out.println("\tmul\ts3,s3,s5");
+                System.out.println("\tmv\ta0,s3");
+                System.out.println(("\tcall\tmalloc"));
+                System.out.println("\tli\ts8," + (o.rid.id+id+1) * 4);
+                System.out.println("\tadd\ts5,sp,s8");
+                System.out.println("\tsw\ta0,0(s5)");
+                System.out.println("\tmv\ts7,a0");
+                if (oo.constructor != null)
+                    System.out.println("\tcall\t"+oo.nam+"_"+oo.nam);
+            }
+            else {
                 System.out.println("\tli\ts5,4");
-            System.out.println("\taddi\ts3,s4,1");
-            System.out.println("\tmul\ts3,s3,s5");
-            System.out.println("\tmv\ta0,s3");
-            System.out.println(("\tcall\tmalloc"));
-
-            System.out.println("\tli\ts8," + (o.rid.id+id+1) * 4);
-            System.out.println("\tadd\ts5,sp,s8");
-            System.out.println("\tsw\ta0,0(s5)");
+                System.out.println("\taddi\ts3,s4,1");
+                System.out.println("\tmul\ts3,s3,s5");
+                System.out.println("\tmv\ta0,s3");
+                System.out.println(("\tcall\tmalloc"));
+                System.out.println("\tli\ts8," + (o.rid.id+id+1) * 4);
+                System.out.println("\tadd\ts5,sp,s8");
+                System.out.println("\tsw\ta0,0(s5)");
+            }
             //System.out.println(("\tsw\ta0,"+(o.rid.id+id+1)*4+"(sp)"));
             if (id == 0) {
                 if (o.rid.gid == 0) {
@@ -790,11 +803,29 @@ public class toASM implements ASTVisitor {
             }
         } else {
             cur = clss.get(o.typNd.typ);
-            System.out.println("\tli\ta0,"+(cur.allc.cnt + 1) * 4);
-            System.out.println("\tcall\tmalloc");
-            System.out.println("\tli\ts3,1");
-            System.out.println("\tsw\ts3,0(a0)");
-            System.out.println("\tmv\ts3,a0");
+            classDef oo = clds.get(o.typNd.typ);
+            if (cur != null) {
+                System.out.println("\tli\ta0,"+(cur.allc.cnt + 1) * 4);
+                System.out.println("\tcall\tmalloc");
+                System.out.println("\tli\ts3,1");
+                System.out.println("\tsw\ts3,0(a0)");
+                System.out.println("\tli\ts8," + (o.rid.id) * 4);
+                System.out.println("\tadd\ts5,sp,s8");
+                System.out.println("\tsw\ta0,0(s5)");
+                System.out.println("\tmv\ts7,a0");
+                if (oo.constructor != null)
+                    System.out.println("\tcall\t"+oo.nam+"_"+oo.nam);
+                System.out.println("\tli\ts8," + (o.rid.id) * 4);
+                System.out.println("\tadd\ts5,sp,s8");
+                System.out.println("\tlw\ts3,0(s5)"); //t3
+            }
+            else {
+                System.out.println("\tli\ta0,4");
+                System.out.println("\tcall\tmalloc");
+                System.out.println("\tli\ts3,1");
+                System.out.println("\tsw\ts3,0(a0)");
+                System.out.println("\tmv\ts3,a0"); //t3
+            }
         }
     }
     @Override
@@ -1168,6 +1199,7 @@ public class toASM implements ASTVisitor {
     public void visit(classDef o) { //???
         curCls = (classType)glb.typMap.get(o.nam);
         clss.put(o.nam, o.scp);
+        clds.put(o.nam, o);
         o.funLis.forEach(x -> {
             x.accept(this);
         });
@@ -1243,7 +1275,8 @@ public class toASM implements ASTVisitor {
         //System.out.println("\tlw\tra,"+(cur.allc.cnt+1)*4+"(sp)");
         System.out.println("\tli\ts8," + (cur.allc.cnt+3) * 4);
         System.out.println("\tadd\tsp,sp,s8");
-        System.out.println("\tret");
+        //System.out.println("\tret");
+        System.out.println("\tjr\tra");
         System.out.println("\t.size\t"+curnam+", .-"+curnam);
         if (o.nam.equals("main")) {
             retDone = true;
