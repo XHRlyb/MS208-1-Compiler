@@ -648,9 +648,16 @@ public class toASM implements ASTVisitor {
                 System.out.println("\tli\ts8," + (o.rid.id+id+1) * 4);
                 System.out.println("\tadd\ts5,sp,s8");
                 System.out.println("\tsw\ta0,0(s5)");
-                System.out.println("\tmv\ts7,a0");
-                if (oo.constructor != null)
-                    System.out.println("\tcall\t"+oo.nam+"_"+oo.nam);
+                if (oo.constructor != null) {
+                    System.out.println("\tli\ts8," + (o.rid.id+id+cnt*2+1) * 4);
+                    System.out.println("\tadd\ts5,sp,s8");
+                    System.out.println("\tsw\ts7,0(s5)");
+                    System.out.println("\tmv\ts7,a0");
+                    System.out.println("\tcall\t" + oo.nam + "_" + oo.nam);
+                    System.out.println("\tli\ts8," + (o.rid.id + id + cnt * 2 + 1) * 4);
+                    System.out.println("\tadd\ts5,sp,s8");
+                    System.out.println("\tlw\ts7,0(s5)");
+                }
             }
             else {
                 System.out.println("\tli\ts5,4");
@@ -812,19 +819,26 @@ public class toASM implements ASTVisitor {
                 System.out.println("\tli\ts8," + (o.rid.id) * 4);
                 System.out.println("\tadd\ts5,sp,s8");
                 System.out.println("\tsw\ta0,0(s5)");
-                System.out.println("\tmv\ts7,a0");
-                if (oo.constructor != null)
-                    System.out.println("\tcall\t"+oo.nam+"_"+oo.nam);
+                if (oo.constructor != null) {
+                    System.out.println("\tli\ts8," + (o.rid.id+1) * 4);
+                    System.out.println("\tadd\ts5,sp,s8");
+                    System.out.println("\tsw\ts7,0(s5)");
+                    System.out.println("\tmv\ts7,a0");
+                    System.out.println("\tcall\t" + oo.nam + "_" + oo.nam);
+                    System.out.println("\tli\ts8," + (o.rid.id + 1) * 4);
+                    System.out.println("\tadd\ts5,sp,s8");
+                    System.out.println("\tlw\ts7,0(s5)");
+                }
                 System.out.println("\tli\ts8," + (o.rid.id) * 4);
                 System.out.println("\tadd\ts5,sp,s8");
-                System.out.println("\tlw\ts3,0(s5)"); //t3
+                System.out.println("\tlw\ts3,0(s5)");
             }
             else {
                 System.out.println("\tli\ta0,4");
                 System.out.println("\tcall\tmalloc");
                 System.out.println("\tli\ts3,1");
                 System.out.println("\tsw\ts3,0(a0)");
-                System.out.println("\tmv\ts3,a0"); //t3
+                System.out.println("\tmv\ts3,a0");
             }
         }
     }
