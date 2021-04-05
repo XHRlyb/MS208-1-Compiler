@@ -5,12 +5,12 @@ import Util.error.semanticError;
 import Util.position;
 import AST.declaration.typeNode;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class Scope {
-    public HashMap<String, varEntity> varMap = new HashMap<>();
-    public HashMap<String, funEntity> funMap = new HashMap<>();
-    public HashMap<String, Type> typMap = new HashMap<>();
+    public LinkedHashMap<String, varEntity> varMap = new LinkedHashMap<>();
+    public LinkedHashMap<String, funEntity> funMap = new LinkedHashMap<>();
+    public LinkedHashMap<String, Type> typMap = new LinkedHashMap<>();
     public Scope fa;
     public String abs_addr = "";
     public RegVidAlloc allc;

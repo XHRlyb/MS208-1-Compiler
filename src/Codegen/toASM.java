@@ -7,7 +7,7 @@ import AST.declaration.*;
 import Util.error.semanticError;
 import Util.symbol.*;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.ArrayList;
 
@@ -22,9 +22,9 @@ public class toASM implements ASTVisitor {
     public int loop_id = 0, if_id = 0, gggid = 0, jpid = 0;
     public LinkedList<Integer> loop_idd = new LinkedList<Integer>();
     public LinkedList<Integer> if_idd = new LinkedList<Integer>();
-    public HashMap<String, Scope> clss = new HashMap<>();
-    public HashMap<String, classDef> clds = new HashMap<>();
-    public HashMap<String, Scope> funs = new HashMap<>();
+    public LinkedHashMap<String, Scope> clss = new LinkedHashMap<>();
+    public LinkedHashMap<String, classDef> clds = new LinkedHashMap<>();
+    public LinkedHashMap<String, Scope> funs = new LinkedHashMap<>();
     public ArrayList<varDefSigStmt> gVarDefs = new ArrayList<>();
 
     public toASM(Scope glb) { this.glb = glb; }

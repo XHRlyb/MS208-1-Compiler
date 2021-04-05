@@ -1,11 +1,11 @@
 package Util.symbol;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 public class classType extends Type {
     public String nam;
-    public HashMap<String, varEntity> varMap = new HashMap<>();
-    public HashMap<String, funEntity> funMap = new HashMap<>();
+    public LinkedHashMap<String, varEntity> varMap = new LinkedHashMap<>();
+    public LinkedHashMap<String, funEntity> funMap = new LinkedHashMap<>();
     public funEntity constructor = null;
 
     public classType(String nam) { this.nam = nam; }

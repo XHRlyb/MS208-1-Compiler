@@ -305,7 +305,7 @@ public class SemanticChecker implements ASTVisitor {
         o.typ = glb.getTyp(o.typNd);  //???
         o.scp = cur;
         o.rid = new RegId(++cur.allc.cnt);
-        cur.allc.cnt += wow + wow;
+        cur.allc.cnt += wow + wow + wow + 3;
     }
     @Override
     public void visit(nullLiteral o) {
