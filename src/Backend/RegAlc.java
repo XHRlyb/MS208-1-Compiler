@@ -363,7 +363,7 @@ public class RegAlc {
                         } else {
                             Vreg tmp = new Vreg("tmp");
                             cnNods.add(tmp);
-                            ins.replaceUse(x, tmp);
+                            ins.replaceDef(x, tmp);
                             blk.insts.add(i + 1, new asmStore(tmp, asm.getPreg("sp"),
                                                 new Imm(ofs.get(x)), 4));
                             i++;
