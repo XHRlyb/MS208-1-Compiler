@@ -1,5 +1,6 @@
 package AST.statement;
 
+import IR.Block;
 import AST.ASTVisitor;
 import AST.expression.exprNode;
 import Util.position;
@@ -7,13 +8,13 @@ import Util.position;
 public class whileStmt extends stmtNode {
     public exprNode cond;
     public stmtNode body;
-    public int id;
+
+    public Block destBlk, condBlk;
 
     public whileStmt(exprNode cond, stmtNode body, position pos) {
         super(pos);
         this.cond = cond;
         this.body = body;
-        this.id = 0;
     }
 
     @Override
