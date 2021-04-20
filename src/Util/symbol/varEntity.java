@@ -1,18 +1,18 @@
 package Util.symbol;
+import IR.operand.*;
 
 public class varEntity {
     public String nam;
     public Type typ;
-    public RegId vid;
-    public boolean incls;
+    public Operand oprnd;
+    public boolean isGlb = false;
+    public boolean incls = false;
 
     public varEntity(String nam) {
         this.nam = nam;
-        this.incls = false;
     }
     public varEntity(String nam, Type typ) {
         this.nam = nam;
         this.typ = typ;
-        this.incls = false;
     }
 }

@@ -1,12 +1,15 @@
 package Util.symbol;
 
 import java.util.LinkedHashMap;
+import IR.type.*;
 
 public class classType extends Type {
     public String nam;
     public LinkedHashMap<String, varEntity> varMap = new LinkedHashMap<>();
     public LinkedHashMap<String, funEntity> funMap = new LinkedHashMap<>();
     public funEntity constructor = null;
+
+    public ClassType clsTyp = null;
 
     public classType(String nam) { this.nam = nam; }
 

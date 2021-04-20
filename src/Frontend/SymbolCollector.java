@@ -1,10 +1,11 @@
 package Frontend;
 
+import IR.*;
+import IR.type.*;
 import AST.*;
 import AST.statement.*;
 import AST.expression.*;
 import AST.declaration.*;
-import Codegen.RegVidAlloc;
 import Util.symbol.*;
 
 public class SymbolCollector implements ASTVisitor {
@@ -17,45 +18,60 @@ public class SymbolCollector implements ASTVisitor {
         this.glb.typMap.put("bool", new primitiveType("bool"));
         this.glb.typMap.put("int", new primitiveType("int"));
         this.glb.typMap.put("string", new primitiveType("string"));
+        IR ir = new IR();
         {
-            funEntity fun = new funEntity("print", "");
+            funEntity fun = new funEntity("print");
             fun.retTyp = new primitiveType("void");
             fun.params.add(new varEntity("str", new primitiveType("string")));
             this.glb.funMap.put("print", fun);
+            fun.fun = new Func("print");
+            fun.fun.rettyp = ir.getTyp(fun.retTyp);
         }
         {
-            funEntity fun = new funEntity("println", "");
+            funEntity fun = new funEntity("println");
             fun.retTyp = new primitiveType("void");
             fun.params.add(new varEntity("str", new primitiveType("string")));
             this.glb.funMap.put("println", fun);
+            fun.fun = new Func("println");
+            fun.fun.rettyp = ir.getTyp(fun.retTyp);
         }
         {
-            funEntity fun = new funEntity("printInt", "");
+            funEntity fun = new funEntity("printInt");
             fun.retTyp = new primitiveType("void");
             fun.params.add(new varEntity("n", new primitiveType("int")));
             this.glb.funMap.put("printInt", fun);
+            fun.fun = new Func("printInt");
+            fun.fun.rettyp = ir.getTyp(fun.retTyp);
         }
         {
-            funEntity fun = new funEntity("printlnInt", "");
+            funEntity fun = new funEntity("printlnInt");
             fun.retTyp = new primitiveType("void");
             fun.params.add(new varEntity("n", new primitiveType("int")));
             this.glb.funMap.put("printlnInt", fun);
+            fun.fun = new Func("printlnInt");
+            fun.fun.rettyp = ir.getTyp(fun.retTyp);
         }
         {
-            funEntity fun = new funEntity("getString", "");
+            funEntity fun = new funEntity("getString");
             fun.retTyp = new primitiveType("string");
             this.glb.funMap.put("getString", fun);
+            fun.fun = new Func("getString");
+            fun.fun.rettyp = ir.getTyp(fun.retTyp);
         }
         {
-            funEntity fun = new funEntity("getInt", "");
+            funEntity fun = new funEntity("getInt");
             fun.retTyp = new primitiveType("int");
             this.glb.funMap.put("getInt", fun);
+            fun.fun = new Func("getInt");
+            fun.fun.rettyp = ir.getTyp(fun.retTyp);
         }
         {
-            funEntity fun = new funEntity("toString", "");
+            funEntity fun = new funEntity("toString");
             fun.retTyp = new primitiveType("string");
             fun.params.add(new varEntity("i", new primitiveType("int")));
             this.glb.funMap.put("toString", fun);
+            fun.fun = new Func("toString");
+            fun.fun.rettyp = ir.getTyp(fun.retTyp);
         }
     }
 
@@ -83,7 +99,8 @@ public class SymbolCollector implements ASTVisitor {
     public void visit(returnStmt o) {}
     @Override
     public void visit(varDefSigStmt o) {
-        cur.defVar(o.nam, new varEntity(o.nam), o.pos);
+        o.var = new varEntity(o.nam);
+        cur.defVar(o.nam, o.var, o.pos);
     }
     @Override
     public void visit(varDefStmt o) {}
@@ -121,20 +138,25 @@ public class SymbolCollector implements ASTVisitor {
 
     @Override
     public void visit(classDef o) {
-        cur = new Scope(cur, "", new RegVidAlloc());
+        cur = new Scope(cur);//);
         classType a = new classType(o.nam);
         o.varLis.forEach(x -> x.accept(this));
         o.funLis.forEach(x -> x.accept(this));
-        if (o.constructor != null)
-            a.constructor = new funEntity(o.constructor.nam, o.nam);
+        if (o.constructor != null) {
+            a.constructor = new funEntity(o.constructor.nam);
+            o.constructor.fun = a.constructor;
+        }
         a.varMap = cur.varMap;
         a.funMap = cur.funMap;
         cur = cur.fa;
         cur.defTyp(o.nam, a, o.pos);
+        o.clsTyp = a;
+        o.clsTyp.clsTyp = new ClassType(o.nam);
     }
     @Override
     public void visit(funDef o) {
-        cur.defFun(o.nam, new funEntity(o.nam, ""), o.pos);
+        o.fun = new funEntity(o.nam);
+        cur.defFun(o.nam, o.fun, o.pos);
     }
     @Override
     public void visit(typeNode o) {}

@@ -1,6 +1,5 @@
 package Util.symbol;
 
-import Codegen.*;
 import Util.error.semanticError;
 import Util.position;
 import AST.declaration.typeNode;
@@ -12,13 +11,9 @@ public class Scope {
     public LinkedHashMap<String, funEntity> funMap = new LinkedHashMap<>();
     public LinkedHashMap<String, Type> typMap = new LinkedHashMap<>();
     public Scope fa;
-    public String abs_addr = "";
-    public RegVidAlloc allc;
 
-    public Scope(Scope fa, String abs_addr, RegVidAlloc allc) {
+    public Scope(Scope fa) {
         this.fa = fa;
-        this.abs_addr = abs_addr;
-        this.allc = allc;
     }
 
     /*public void defVar(String nam, varEntity var, position pos) {
@@ -33,7 +28,6 @@ public class Scope {
             throw new semanticError("duplicated with type name " + nam, pos);
         if (varMap.containsKey(nam))
             throw new semanticError("varible " + nam + " redefine", pos);
-        var.vid = new RegId(++allc.cnt);
         varMap.put(nam, var);
     }
     public void defFun(String nam, funEntity fun, position pos) {
