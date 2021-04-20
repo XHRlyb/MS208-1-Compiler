@@ -1,8 +1,9 @@
 import java.io.File;
 import java.io.PrintStream;
+import Backend.*;
+import IR.*;
+import ASM.ASM;
 import AST.programNode;
-import Codegen.RegVidAlloc;
-import Codegen.toASM;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
 import Frontend.SymbolCollector;
@@ -17,7 +18,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-
 public class Main {
     public static void main(String[] args) throws Exception {
         //String nam = "test.mx";
@@ -59,15 +59,21 @@ public class Main {
             ASTBuilder astBuilder = new ASTBuilder();
             ASTRoot = (programNode) astBuilder.visit(parseTreeRoot);
 
-            Scope global = new Scope(null, "", new RegVidAlloc());
+            Scope global = new Scope(null);//, "", new RegVidAlloc());
             new SymbolCollector(global).visit(ASTRoot);
             new TypeCollector(global).visit(ASTRoot);
             global.varMap.clear();
             new SemanticChecker(global).visit(ASTRoot);
-
-            if (!onlySemantic && codegen) {
-                new toASM(global).visit(ASTRoot);
-            }
+            if (!codegen) return;
+            IR ir = new IR();
+            new IRBuilder(ir).visit(ASTRoot);
+            new IRBuilder(ir).work();
+            new PhiResol(ir).work();
+            //new IRPrinter(System.out, ir).outp();
+            ASM asm = new ASM();
+            new ASMBuilder(ir, asm).work();
+            new RegAlc(asm).work();
+            new ASMPrinter(System.out, asm).outp(); //*/
         } catch (Error er) {
             System.err.println(er.toString());
             throw new RuntimeException();
