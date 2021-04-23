@@ -58,4 +58,23 @@ public class Block {
         if (!termed) return null;
         return insts.get(insts.size() - 1);
     }
+    public void replacePre(Block oBlk, Block nBlk) {
+        for (Inst ins : insts)
+            if (ins instanceof Phi)
+                for (int i = 0; i < ((Phi)ins).blks.size(); i++)
+                    if (((Phi)ins).blks.get(i) == oBlk)
+                        ((Phi)ins).blks.set(i, nBlk);
+    }
+    public void replaceNex(Block oBlk, Block nBlk) {
+        for (Inst ins : insts)
+            if (ins instanceof Jump) {
+                if (((Jump)ins).dest == oBlk)
+                    ((Jump)ins).dest = nBlk;
+            } else if (ins instanceof Branch) {
+                if (((Branch)ins).tDest == oBlk)
+                    ((Branch)ins).tDest = nBlk;
+                if (((Branch)ins).fDest == oBlk)
+                    ((Branch)ins).fDest = nBlk;
+            }
+    }
 }

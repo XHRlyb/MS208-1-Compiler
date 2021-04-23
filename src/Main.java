@@ -4,6 +4,7 @@ import Backend.*;
 import IR.*;
 import ASM.ASM;
 import AST.programNode;
+import Optim.*;
 import Frontend.ASTBuilder;
 import Frontend.SemanticChecker;
 import Frontend.SymbolCollector;
@@ -68,6 +69,7 @@ public class Main {
             IR ir = new IR();
             new IRBuilder(ir).visit(ASTRoot);
             new IRBuilder(ir).work();
+            new Optim(ir).work();
             new PhiResol(ir).work();
             //new IRPrinter(System.out, ir).outp();
             ASM asm = new ASM();
