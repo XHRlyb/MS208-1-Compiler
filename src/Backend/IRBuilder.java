@@ -787,32 +787,6 @@ public class IRBuilder implements ASTVisitor {
         dCh.get(blk).forEach(s -> renameVar(x, s));
         while (x.renams.peek() != ve) x.renams.pop();
     }
-    public void rmvAssign() {
-        HashMap<Reg, Operand> asgns = new HashMap<>();
-        curFun.blks.forEach(t -> t.insts.forEach(x -> {
-            if (x instanceof Assign) 
-                asgns.put(x.reg, ((Assign)x).val);
-        }));
-        curFun.blks.forEach(t -> {
-            for (int i = 0; i < t.insts.size(); i++) {
-                Inst ins = t.insts.get(i);
-                if (ins instanceof Assign) {
-                    t.rmvIns(ins);
-                    i--;
-                } else {
-                    ArrayList<Operand> oprnds = ins.Operands();
-                    oprnds.forEach(oprnd -> {
-                        if (oprnd instanceof Reg) {
-                            Operand rplc = oprnd;
-                            while (rplc instanceof Reg && asgns.get((Reg)rplc) != null) 
-                                rplc = asgns.get((Reg)rplc);
-                            if (oprnd != rplc) ins.replace(oprnd, rplc);
-                        }
-                    });
-                }
-            }
-        });
-    }
     public void simpPhi() {
         curFun.blks.forEach(t -> {
             for (int i = 0; i < t.insts.size(); i++) {

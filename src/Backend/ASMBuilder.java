@@ -98,13 +98,18 @@ public class ASMBuilder {
                 rs2 = getReg(((Binary)ins).src2);
             } else {
                 if (((Binary)ins).src2 instanceof ConstInt) {
-                    rs1 = getReg(((Binary)ins).src1);
-                    rs2 = new Imm(((ConstInt)((Binary)ins).src2).val);
-                    if (op.equals("sub")) {
-                        op = "addi";
-                        ((Imm)rs2).val = -((Imm)rs2).val;
+                    rs1 = getReg(((Binary) ins).src1);
+                    if (((ConstInt) ((Binary) ins).src2).val >= -2047 && ((ConstInt) ((Binary) ins).src2).val <= 2047) {
+                        rs2 = new Imm(((ConstInt) ((Binary) ins).src2).val);
+                        if (op.equals("sub")) {
+                            op = "addi";
+                            ((Imm) rs2).val = -((Imm) rs2).val;
+                        } else {
+                            op = op + "i";
+                        }
                     } else {
-                        op = op + "i";
+                        rs2 = new Vreg("tmp");
+                        curBlk.addIns(new asmLi((asmReg)rs2, new Imm(((ConstInt)((Binary)ins).src2).val)));
                     }
                 } else if (((Binary)ins).src1 instanceof ConstInt) {
                     if (op.equals("sll") || op.equals("sra") || op.equals("sub")) {
@@ -112,8 +117,13 @@ public class ASMBuilder {
                         rs2 = getReg(((Binary)ins).src2);
                     } else {
                         rs1 = getReg(((Binary)ins).src2);
-                        rs2 = new Imm(((ConstInt)((Binary)ins).src1).val);
-                        op = op + "i";
+                        if (((ConstInt) ((Binary) ins).src1).val >= -2047 && ((ConstInt) ((Binary) ins).src1).val <= 2047) {
+                            rs2 = new Imm(((ConstInt)((Binary)ins).src1).val);
+                            op = op + "i";
+                        } else {
+                            rs2 = new Vreg("tmp");
+                            curBlk.addIns(new asmLi((asmReg)rs2, new Imm(((ConstInt)((Binary)ins).src1).val)));
+                        }
                     }
                 } else {
                     rs1 = getReg(((Binary)ins).src1);
@@ -202,8 +212,11 @@ public class ASMBuilder {
                 curBlk.addIns(new asmCalc(getReg(inst.reg), "addi", bas, new Imm(w)));
             } else {
                 Vreg tmp = new Vreg("tmp");
-                curBlk.addIns(new asmCalc(tmp, "mul", getReg(new ConstInt(typ.size() / 8, 32)),
-                                getReg(inst.idx)));
+                int siz = typ.size() / 8, lg2 = (int)(Math.log(siz) / Math.log(2));
+                if ((1 << lg2) != siz)
+                    curBlk.addIns(new asmCalc(tmp, "mul", getReg(inst.idx), getReg(new ConstInt(siz, 32))));
+                else
+                    curBlk.addIns(new asmCalc(tmp, "slli", getReg(inst.idx), new Imm(lg2)));
                 if (offs == 0)
                     curBlk.addIns(new asmCalc(getReg(inst.reg), "add", bas, tmp));
                 else {
@@ -285,6 +298,7 @@ public class ASMBuilder {
         while (cond.get()) {
             cond.set(false);
             HashSet<asmReg> used = new HashSet<>();
+            used.add(asm.getPreg("a0"));
             curFun.blks.forEach(t -> t.insts.forEach(x -> used.addAll(x.Uses())));
             curFun.blks.forEach(t -> {
                 for (int i = 0; i < t.insts.size(); i++) {

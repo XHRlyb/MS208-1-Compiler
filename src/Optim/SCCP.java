@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class SCCP {
     public IR ir;
-    public Func curFun;
+    public Func curFun = null;
     public boolean cond;
     public HashSet<Block> vis;
     public HashMap<Reg, ArrayList<Inst>> regUses;
