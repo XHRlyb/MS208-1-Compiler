@@ -17,6 +17,10 @@ public class Reg extends Operand {
     public Reg(BaseType typ, String nam) {
         super(typ); this.nam = nam;
     }
+    public Reg(BaseType typ, String nam, boolean glb, boolean con) {
+        super(typ); this.nam = nam;
+        this.glb = glb; this.consptr = con;
+    }
 
     @Override
     public String toString() { return (glb?"@":"%")+nam; }
