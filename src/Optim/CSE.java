@@ -2,6 +2,7 @@ package Optim;
 
 import IR.*;
 import IR.inst.*;
+import IR.operand.*;
 
 public class CSE {
     public IR ir;
@@ -19,6 +20,9 @@ public class CSE {
     }
     public boolean same(GetPtr x, GetPtr y) {
         return x.bas.equals(y.bas) && x.idx.equals(y.idx) && ((x.offs == null && y.offs == null) || (x.offs != null && x.offs.equals(y.offs)));
+    }
+    public boolean same(ConstInt x, ConstInt y) {
+        return x.val == y.val;
     }
     public void doBlock(Block blk) {
         for (int i = 0; i < blk.insts.size(); i++) {
