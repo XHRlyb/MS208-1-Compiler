@@ -120,8 +120,8 @@ public class CleanUp {
                     oprnds.forEach(oprnd -> {
                         if (oprnd instanceof Reg) {
                             Operand rep = oprnd;
-                            while (rep instanceof Reg && asgMap.get((Reg)rep) != null)
-                                rep = asgMap.get((Reg)rep);
+                            while (rep instanceof Reg && asgMap.get(rep) != null)
+                                rep = asgMap.get(rep);
                             if (oprnd != rep) x.replace(oprnd, rep);
                         }
                     });

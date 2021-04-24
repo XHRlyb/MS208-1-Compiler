@@ -1,6 +1,7 @@
 package Optim;
 
 import IR.*;
+import Backend.*;
 
 public class Optim {
     public IR ir;
@@ -12,6 +13,7 @@ public class Optim {
             new CleanUp(ir).work();
             new SCCP(ir).work();
 //        }
+        //new IRPrinter(System.out, ir).outp();
         new CleanUp(ir).work();
     }
 }

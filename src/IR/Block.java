@@ -49,9 +49,19 @@ public class Block {
         }
         termed = true;
     }
-    public void rmvTerm() {
+    public void rmvTerm() {  //???
         if (!termed) return;
-        insts.remove(insts.size() - 1);
+        Inst tp = insts.get(insts.size() - 1);
+        if (tp instanceof Jump) {
+            nex.remove(((Jump)tp).dest);
+            ((Jump)tp).dest.pre.remove(this);
+        } else if (tp instanceof Branch) {
+            nex.remove(((Branch)tp).tDest);
+            nex.remove(((Branch)tp).fDest);
+            ((Branch)tp).tDest.pre.remove(this);
+            ((Branch)tp).fDest.pre.remove(this);
+        }
+        insts.remove(tp);
         termed = false;
     }
     public Inst getTerm() {
