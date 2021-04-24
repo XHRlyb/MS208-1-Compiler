@@ -13,6 +13,8 @@ public class Optim {
             new CleanUp(ir).work();
             new SCCP(ir).work();
             new CleanUp(ir).work();
+            new CSE(ir).work();
+            new CleanUp(ir).work();
             new ADCE(ir).work();
             new CleanUp(ir).work();
             new LICM(ir).work();
