@@ -9,7 +9,7 @@ public class Func {
     public String nam;
     public Block begBlk = new Block(0);
     public ArrayList<Block> blks = new ArrayList<>();
-    public ArrayList<Operand> params = new ArrayList<>();
+    public ArrayList<Reg> params = new ArrayList<>();
     public HashSet<Reg> vars = new HashSet<>();
     public BaseType rettyp = new VoidType();
     public ArrayList<Inst> retInsts = new ArrayList<>();

@@ -591,7 +591,7 @@ public class IRBuilder implements ASTVisitor {
             curFun.nam = curCls.nam + "." + o.nam;
             curCls.funs.add(curFun);
             curFun.clsPtr = new Reg(new Pointer(curCls), "this");
-            curFun.params.add(curFun.clsPtr);
+            curFun.params.add((Reg)curFun.clsPtr);
         }
         ir.funs.put(curFun.nam, curFun);
         curBlk = curFun.begBlk;
@@ -600,7 +600,7 @@ public class IRBuilder implements ASTVisitor {
         }
         o.params.forEach(x -> {
             x.var.oprnd = new Reg(ir.getTyp(x.var.typ), x.nam);
-            curFun.params.add(x.var.oprnd);
+            curFun.params.add((Reg)x.var.oprnd);
         });
         o.block.accept(this);
         if (!curBlk.termed) {

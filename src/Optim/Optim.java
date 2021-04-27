@@ -14,7 +14,7 @@ public class Optim {
             new SCCP(ir).work();
             new CleanUp(ir).work();
             new CSE(ir).work();
-            new CleanUp(ir).work();//*/
+            new CleanUp(ir).work();
             new ADCE(ir).work();
             new CleanUp(ir).work();
             new Inline(ir).work();
