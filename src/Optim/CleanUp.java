@@ -51,7 +51,7 @@ public class CleanUp {
                     Inst ins = blk.insts.get(i);
                     if (ins instanceof Call) continue;
                     if (ins.reg != null && !Regs.contains(ins.reg)) {
-                        blk.insts.remove(ins); i--;
+                        blk.insts.remove(i); i--;
                         cond = true;
                     }
                 }
@@ -78,6 +78,7 @@ public class CleanUp {
                     }
                 });
                 if (ins instanceof Call) Funs.add(((Call)ins).fun);
+                ins.blk = blk;
             }
 
     }

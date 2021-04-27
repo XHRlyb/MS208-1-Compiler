@@ -14,15 +14,16 @@ public class Optim {
             new SCCP(ir).work();
             new CleanUp(ir).work();
             new CSE(ir).work();
-            new CleanUp(ir).work();
+            new CleanUp(ir).work();//*/
             new ADCE(ir).work();
+            new CleanUp(ir).work();
             new Inline(ir).work();
             new CleanUp(ir).work();
             new LICM(ir).work();
             new CleanUp(ir).work();
             new ImmInst(ir).work();
             new CleanUp(ir).work();
-            new gVarAcc(ir).work();
+            new gVarAcc(ir).work();//*/
         }
         //new IRPrinter(System.out, ir).outp();
         new CleanUp(ir).work();

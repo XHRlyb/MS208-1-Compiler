@@ -3,6 +3,10 @@ package Backend;
 import ASM.*;
 import ASM.inst.*;
 import ASM.operand.*;
+import IR.Block;
+import IR.inst.Inst;
+import IR.inst.Jump;
+
 import java.util.*;
 
 public class RegAlc {
@@ -215,6 +219,7 @@ public class RegAlc {
         return true;    
     }
     public boolean consrv(ArrayList<asmReg> nodes, ArrayList<asmReg> y) {
+        nodes.removeAll(y);
         nodes.addAll(y);
         int k = 0;
         for (asmReg node : nodes)
@@ -391,14 +396,34 @@ public class RegAlc {
         } else {
             addSp();
             removeDeadMv();
-            removeUselessBlock();
+            BlockMerge();
         }
         curFun = null;
     }
+    public void BlockMerge() {
+        for (int i = 0; i < curFun.blks.size(); i++) {
+            asmBlock blk = curFun.blks.get(i);
+            if (blk.pre.size() == 1 && blk.pre.get(0).getTerm() instanceof asmJ && ((asmJ) blk.pre.get(0).getTerm()).dest == blk) {
+                asmBlock nBlk = blk.pre.get(0);
+                nBlk.nex = blk.nex;
+                nBlk.rmvTerm();
+                nBlk.insts.addAll(blk.insts);
+                for (asmBlock b : nBlk.nex) {
+                    for (int j = 0; j < b.pre.size(); j++)
+                        if (b.pre.get(j) == blk)
+                            b.pre.set(j, nBlk);
+                }
+                curFun.blks.remove(i);
+                i--;
+            }
+        }
+    }
     public void addSp() {
         int rOffs = spOffs + Integer.max(0, curFun.params.size() - 8) * 4;
-        curFun.begBlk.addInsF(new asmCalc(asm.getPreg("sp"),  "addi", asm.getPreg("sp"), new Imm(-rOffs)));
-        curFun.endBlk.addInsB(new asmCalc(asm.getPreg("sp"), "addi", asm.getPreg("sp"), new Imm(rOffs)));
+        if (rOffs > 0) {
+            curFun.begBlk.addInsF(new asmCalc(asm.getPreg("sp"), "addi", asm.getPreg("sp"), new Imm(-rOffs)));
+            curFun.endBlk.addInsB(new asmCalc(asm.getPreg("sp"), "addi", asm.getPreg("sp"), new Imm(rOffs)));
+        }
         for (asmInst ins : curFun.begBlk.insts)
             if (ins instanceof asmLoad && ((asmLoad)ins).offs.inPara)
                 ((asmLoad)ins).offs.val += spOffs;
@@ -413,7 +438,7 @@ public class RegAlc {
                 }
             }
     }
-    public void removeUselessBlock() {
+    /*public void removeUselessBlock() {
         for (int i = 0; i < curFun.blks.size(); i++) {
             asmBlock blk = curFun.blks.get(i);
             if (!(blk.insts.get(0) instanceof asmJ)) continue;
@@ -433,7 +458,7 @@ public class RegAlc {
             curFun.blks.remove(i);
             i--;
         }
-    }
+    }*/
     public void work() {
         asm.funs.forEach((s, fun) -> {
             spOffs = 0;

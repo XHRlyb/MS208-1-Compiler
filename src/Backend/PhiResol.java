@@ -30,29 +30,11 @@ public class PhiResol {
                 tmp.termed = true;
                 tmp.nex.add(b);
                 b.pre.set(i, tmp);
-                for (int j = 0; j < b.insts.size(); j++) {
-                    Inst ins = b.insts.get(j);
-                    if (ins instanceof Phi) {
-                        for (int k = 0; k < ((Phi)ins).blks.size(); k++)
-                            if (((Phi)ins).blks.get(k) == x)
-                                ((Phi)ins).blks.set(k, tmp);
-                    }
-                }
+                b.replacePre(x, tmp);
                 for (int j = 0; j < x.nex.size(); j++)
                     if (x.nex.get(j) == b)
                         x.nex.set(j, tmp);
-                for (int j = 0; j < x.insts.size(); j++) {
-                    Inst ins = x.insts.get(j);
-                    if (ins instanceof Jump) {
-                        if (((Jump)ins).dest == b)
-                            ((Jump)ins).dest = tmp;
-                    } else if (ins instanceof Branch) {
-                        if (((Branch)ins).tDest == b)
-                            ((Branch)ins).tDest = tmp;
-                        if (((Branch)ins).fDest == b)
-                            ((Branch)ins).fDest = tmp;
-                    }
-                }
+                x.replaceNex(b, tmp);
             }
             for (int i = 0; i < b.insts.size(); i++) {
                 Inst ins = b.insts.get(i);

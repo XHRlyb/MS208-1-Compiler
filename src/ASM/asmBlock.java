@@ -24,4 +24,6 @@ public class asmBlock {
                 return;
             }
     }
+    public asmInst getTerm() { return insts.get(insts.size() - 1); }
+    public void rmvTerm() { insts.remove(insts.size() - 1); }
 }

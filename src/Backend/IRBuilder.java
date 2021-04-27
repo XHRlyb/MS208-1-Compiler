@@ -605,7 +605,7 @@ public class IRBuilder implements ASTVisitor {
         o.block.accept(this);
         if (!curBlk.termed) {
             Inst tmp;
-            if (curFun.nam.equals("main")) 
+            if (o.nam.equals("main"))
                 tmp = new Return(curBlk, new ConstInt(0, 32));
             else if (curFun.rettyp.equals(new VoidType()))
                 tmp = new Return(curBlk, new Void());

@@ -48,6 +48,12 @@ public class Inline {
             for (Block blk : x.blks)
                 for (Inst ins : blk.insts)
                     if (ins instanceof Call && ir.funs.containsValue(((Call)ins).fun)) { // ???
+                        String tp = ((Call)ins).fun.nam;
+                        if (tp == "print" || tp == "println" || tp == "printInt" || tp == "printlnInt") continue;
+                        if (tp == "getString" || tp == "getInt" || tp == "toString" || tp == "my_malloc") continue;
+                        if (tp == "str_length" || tp == "str_substring" || tp == "str_parseInt" || tp == "str_ord") continue;
+                        if (tp == "str_add" || tp == "str_lt" || tp == "str_gt" || tp == "str_le") continue;
+                        if (tp == "str_ge" || tp == "str_eq" || tp == "str_ne") continue;
                         edges.get(x).add(((Call)ins).fun);
                         reEdges.get(((Call)ins).fun).add((Call)ins);
                         reEdgeFs.get(((Call)ins).fun).add(x);
