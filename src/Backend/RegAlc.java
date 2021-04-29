@@ -15,14 +15,14 @@ public class RegAlc {
     
     public RegAlc(ASM asm) { this.asm = asm; }
 
-    public HashMap<asmBlock, HashSet<asmReg>> buses = new HashMap<>();
-    public HashMap<asmBlock, HashSet<asmReg>> bdefs = new HashMap<>();
-    public HashMap<asmBlock, HashSet<asmReg>> blvis = new HashMap<>();
-    public HashMap<asmBlock, HashSet<asmReg>> blvos = new HashMap<>();
+    public LinkedHashMap<asmBlock, HashSet<asmReg>> buses = new LinkedHashMap<>();
+    public LinkedHashMap<asmBlock, HashSet<asmReg>> bdefs = new LinkedHashMap<>();
+    public LinkedHashMap<asmBlock, HashSet<asmReg>> blvis = new LinkedHashMap<>();
+    public LinkedHashMap<asmBlock, HashSet<asmReg>> blvos = new LinkedHashMap<>();
 
     public void liveness_analysis() {
-        buses = new HashMap<>(); bdefs = new HashMap<>();
-        blvis = new HashMap<>(); blvos = new HashMap<>();
+        buses = new LinkedHashMap<>(); bdefs = new LinkedHashMap<>();
+        blvis = new LinkedHashMap<>(); blvos = new LinkedHashMap<>();
         curFun.blks.forEach(b -> {
             HashSet<asmReg> uses = new HashSet<>();
             HashSet<asmReg> defs = new HashSet<>();
@@ -74,12 +74,12 @@ public class RegAlc {
     }
 
     public int spOffs = 0;
-    public HashMap<asmReg, HashSet<asmMv>> mvLis = new HashMap<>();
-    public HashMap<asmReg, HashSet<asmReg>> adjLis = new HashMap<>();
-    public HashMap<asmReg, Double> wgt = new HashMap<>();
-    public HashMap<asmReg, Integer> deg = new HashMap<>();
-    public HashMap<asmReg, asmReg> ali = new HashMap<>();
-    public HashMap<asmReg, Integer> ofs = new HashMap<>();
+    public LinkedHashMap<asmReg, HashSet<asmMv>> mvLis = new LinkedHashMap<>();
+    public LinkedHashMap<asmReg, HashSet<asmReg>> adjLis = new LinkedHashMap<>();
+    public LinkedHashMap<asmReg, Double> wgt = new LinkedHashMap<>();
+    public LinkedHashMap<asmReg, Integer> deg = new LinkedHashMap<>();
+    public LinkedHashMap<asmReg, asmReg> ali = new LinkedHashMap<>();
+    public LinkedHashMap<asmReg, Integer> ofs = new LinkedHashMap<>();
     public HashSet<edge> adjSet = new HashSet<>();
     public int K;
     public HashSet<asmMv> wrMovs, acMovs, caMovs, csMovs, fzMovs;
@@ -89,12 +89,12 @@ public class RegAlc {
 
     public void init() {
         K = asm.getCol().size();
-        mvLis = new HashMap<>();
-        adjLis = new HashMap<>();
-        wgt = new HashMap<>();
-        deg = new HashMap<>();
-        ali = new HashMap<>();
-        ofs = new HashMap<>();
+        mvLis = new LinkedHashMap<>();
+        adjLis = new LinkedHashMap<>();
+        wgt = new LinkedHashMap<>();
+        deg = new LinkedHashMap<>();
+        ali = new LinkedHashMap<>();
+        ofs = new LinkedHashMap<>();
         adjSet = new HashSet<>();
         wrMovs = new HashSet<>();
         acMovs = new HashSet<>();
@@ -346,7 +346,16 @@ public class RegAlc {
             asmBlock blk = curFun.blks.get(t);
             for (int i = 0; i < blk.insts.size(); i++) {
                 asmInst ins = blk.insts.get(i);
-                for (asmReg x : ins.Uses()) 
+                if (ins instanceof asmMv && spNods.contains(((asmMv)ins).reg) && spNods.contains(((asmMv)ins).src)) {
+                    Vreg tmp = new Vreg("tmp");
+                    blk.insts.set(i, new asmLoad(tmp, asm.getPreg("sp"),
+                            new Imm(ofs.get(((asmMv)ins).src)), 4));
+                    blk.insts.add(i + 1, new asmStore(tmp, asm.getPreg("sp"),
+                            new Imm(ofs.get(((asmMv)ins).reg)), 4));
+                    i++;
+                    continue;
+                }
+                for (asmReg x : ins.Uses())
                     if (spNods.contains(x)) {
                         if (ins instanceof asmMv) {
                             blk.insts.set(i, new asmLoad(((asmMv) ins).reg,
@@ -395,6 +404,11 @@ public class RegAlc {
             runFunc(fun);
         } else {
             addSp();
+            /*if(fun.nam.equals("taskStress.taskStress")){
+                System.err.println("hahahahahahahah");
+                new ASMPrinter(System.err,asm).outp();
+            }*/
+
             removeDeadMv();
             BlockMerge();
         }
