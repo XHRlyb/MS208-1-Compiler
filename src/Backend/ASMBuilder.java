@@ -202,6 +202,7 @@ public class ASMBuilder {
             }
         } else if (ins instanceof GetPtr) {
             GetPtr inst = (GetPtr)ins;
+            if (inst.bas instanceof Null) return;
             asmReg bas = getReg(inst.bas);
             BaseType typ = ((Pointer)inst.bas.typ).typ;
             int offs = 0;
