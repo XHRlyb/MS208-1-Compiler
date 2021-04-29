@@ -74,6 +74,13 @@ public class IRBuilder implements ASTVisitor {
 
     @Override
     public void visit(programNode o) {
+        o.body.forEach(x -> {
+            if (x instanceof classDef) {
+                curCls = ((classDef)x).clsTyp.clsTyp;
+                ((classDef)x).varLis.forEach(t -> t.accept(this));
+                curCls = null;
+            }
+        });
         o.body.forEach(x -> x.accept(this));
     }
     @Override
