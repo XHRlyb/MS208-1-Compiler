@@ -512,7 +512,7 @@ public class IRBuilder implements ASTVisitor {
                 curBlk.addIns(new Binary(curBlk, (Reg)o.oprnd, "sub", new ConstInt(0, 32), src));
                 break;
             case "~":
-                curBlk.addIns(new Binary(curBlk, (Reg)o.oprnd, "xor", src, new ConstInt(Integer.MAX_VALUE, 32)));
+                curBlk.addIns(new Binary(curBlk, (Reg)o.oprnd, "xor", src, new ConstInt(-1, 32)));
                 break;
             case "!":
                 curBlk.addIns(new Binary(curBlk, (Reg)o.oprnd, "xor", src, new ConstBool(true)));
