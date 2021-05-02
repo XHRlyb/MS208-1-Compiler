@@ -4,14 +4,8 @@ import IR.*;
 import IR.inst.*;
 import IR.operand.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-
 public class CSE {
     public IR ir;
-    public Func curFun = null;
-    public LinkedHashMap<Reg, ArrayList<Inst>> regUses;
 
     public CSE(IR ir) { this.ir = ir; }
 
@@ -30,22 +24,6 @@ public class CSE {
     public boolean same(ConstInt x, ConstInt y) {
         return x.val == y.val;
     }
-    public void getRegUse() {
-        regUses = new LinkedHashMap<>();
-        for (Block blk : curFun.blks)
-            for (Inst ins : blk.insts)
-                for (Operand reg : ins.Operands())
-                    if (reg instanceof Reg) {
-                        if (!regUses.containsKey(reg))
-                            regUses.put((Reg)reg, new ArrayList<>());
-                        regUses.get(reg).add(ins);
-                    }
-    }
-    public void replace(Reg reg, Operand val) {
-        for (Inst ins : regUses.get(reg)) {
-            ins.replace(reg, val);
-        }
-    }
     public void doBlock(Block blk) {
         for (int i = 0; i < blk.insts.size(); i++) {
             Inst ins = blk.insts.get(i);
@@ -54,19 +32,12 @@ public class CSE {
                 if ((ins instanceof Binary && is instanceof Binary && same((Binary)ins, (Binary)is)) ||
                         (ins instanceof BitCast && is instanceof BitCast && same((BitCast)ins, (BitCast)is)) ||
                         (ins instanceof Cmp && is instanceof Cmp && same((Cmp)ins, (Cmp)is)) ||
-                        (ins instanceof GetPtr && is instanceof GetPtr && same((GetPtr)ins, (GetPtr)is))) {
-                    replace(is.reg, ins.reg);
-                    blk.insts.remove(j); j--;
-                }
+                        (ins instanceof GetPtr && is instanceof GetPtr && same((GetPtr)ins, (GetPtr)is)))
+                        blk.insts.set(j, new Assign(blk, is.reg, ins.reg));
             }
         }
     }
     public void work() {
-        ir.funs.forEach((s, x) -> {
-            curFun = x;
-            getRegUse();
-            x.blks.forEach(this::doBlock);
-            curFun = null;
-        });
+        ir.funs.forEach((s, x) -> x.blks.forEach(this::doBlock));
     }
 }

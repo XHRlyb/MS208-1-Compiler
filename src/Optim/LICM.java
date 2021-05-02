@@ -11,20 +11,20 @@ public class LICM {
     public IR ir;
     public Func curFun = null;
     public HashSet<Block> vis;
-    public LinkedHashMap<Reg, Inst> regDefs;
-    public LinkedHashMap<Reg, ArrayList<Inst>> gVarDefs;
+    public HashMap<Reg, Inst> regDefs;
+    public HashMap<Reg, ArrayList<Inst>> gVarDefs;
     public ArrayList<Block> rBlks;
     public ArrayList<Block> rNods;
-    public LinkedHashMap<Block, Integer> dfn;
-    public LinkedHashMap<Block, Block> iDom;
-    public LinkedHashMap<Block, ArrayList<Block>> dCh;
-    public LinkedHashMap<Block, HashSet<Block>> dSubT;
+    public HashMap<Block, Integer> dfn;
+    public HashMap<Block, Block> iDom;
+    public HashMap<Block, ArrayList<Block>> dCh;
+    public HashMap<Block, HashSet<Block>> dSubT;
 
     public LICM(IR ir) { this.ir = ir; }
 
     public void getRegDef() {
-        regDefs = new LinkedHashMap<>();
-        gVarDefs = new LinkedHashMap<>();
+        regDefs = new HashMap<>();
+        gVarDefs = new HashMap<>();
         ir.gVars.forEach((s, x) -> gVarDefs.put(x, new ArrayList<>()));
         for (Block blk : curFun.blks)
             for (Inst ins : blk.insts) {
@@ -121,7 +121,7 @@ public class LICM {
             for (Block blk : lpBlk)
                 for (int i = 0; i < blk.insts.size(); i++) {
                     Inst ins = blk.insts.get(i);
-                    if (ins instanceof Binary || ins instanceof Cmp) {
+                    if (ins instanceof Binary) {
                         boolean check = true;
                         ArrayList<Operand> uses = ins.Operands();
                         for (Operand oprnd : uses)
@@ -159,12 +159,12 @@ public class LICM {
             vis = new HashSet<>();
             rBlks = new ArrayList<>();
             dfsBlk(curFun.begBlk);
-            dfn = new LinkedHashMap<>();
-            iDom = new LinkedHashMap<>();
-            dCh = new LinkedHashMap<>();
+            dfn = new HashMap<>();
+            iDom = new HashMap<>();
+            dCh = new HashMap<>();
             domTree();
             rNods = new ArrayList<>();
-            dSubT = new LinkedHashMap<>();
+            dSubT = new HashMap<>();
             dfsTree(curFun.begBlk);
             getRegDef();
             doFunc();
