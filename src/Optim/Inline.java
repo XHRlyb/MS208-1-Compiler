@@ -88,14 +88,14 @@ public class Inline {
         ir.funs.forEach((s, x) -> {
             if (!nInlin.contains(x)) {
                 int num = x.blks.stream().mapToInt(b -> b.insts.size()).sum();
-                if (x.blks.size() <= 50 && num <= 300) cInlin.add(x);
+                if (x.blks.size() <= 50 && num <= 600) cInlin.add(x);
             }
         });
     }
     public void inline(Call call, Func caller) {
         Func callee = call.fun;
         int num = callee.blks.stream().mapToInt(b -> b.insts.size()).sum();
-        if (callee.blks.size() > 50 || num > 300) return;
+        if (callee.blks.size() > 50 || num > 600) return;
         inlineBlk = new HashMap<>();
         inlineOpr = new HashMap<>();
         pre = "inline." + callee.nam + "." + (++tot) + ".";
